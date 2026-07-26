@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Astrología Horaria · Método Silvia Ceres</title>
+<title>Kairós</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -122,8 +122,8 @@ footer strong{color:var(--gold);}
 
 <div class="wrap">
 <header>
-  <h1>Astrología Horaria</h1>
-  <p class="sub">Método Silvia Ceres · Efemérides 2026–2045 · Casas Placidus · IA Claude</p>
+  <h1>Kairós</h1>
+  <p class="sub">Astrología Horaria · Celina Sasiain</p>
 </header>
 
 <!-- FORMULARIO -->
@@ -241,7 +241,7 @@ footer strong{color:var(--gold);}
   </div>
 
   <!-- IA CONVERSACIONAL -->
-  <div class="sec">Consulta con IA · Silvia Ceres</div>
+  <div class="sec">Consulta con IA · Kairós</div>
   <div class="card">
     <h3>Análisis e interpretación</h3>
     <div class="api-row">
@@ -319,8 +319,8 @@ footer strong{color:var(--gold);}
 </div>
 
 <footer>
-  <strong>© Celina Sasiain</strong> · Astrología Horaria · Método Silvia Ceres<br>
-  Herramienta de uso profesional · Efemérides 2026–2045
+  <strong>© Celina Sasiain</strong> · Kairós
+  <br><span style="font-size:.65rem;opacity:.7;">Astrología Horaria · Celina Sasiain · Todos los derechos reservados · Efemérides Swiss</span>
 </footer>
 </div>
 
@@ -1398,7 +1398,7 @@ function buildCartaText(data){
   return t;
 }
 
-// ── SISTEMA IA · SILVIA CERES ──
+// ── SISTEMA IA · KAIRÓS ──
 const SISTEMA_IA=`Sos un/a astrólogo/a experto/a en Astrología Horaria según el método de SILVIA CERES (tradición horaria clásica, Lilly, Bonatti, Morin, Estadella). Tu rol es analizar cartas horarias con rigor técnico y dar respuestas concretas y profesionales.
 
 FUNDAMENTOS DEL MÉTODO SILVIA CERES:
@@ -1588,7 +1588,7 @@ async function llamarIA(apiKey,btn,btnLabel){
   // Mostrar spinner en el historial
   const spinDiv=document.createElement('div');
   spinDiv.className='chat-msg assistant';
-  spinDiv.innerHTML='<div class="msg-label">Silvia Ceres · IA</div><div class="msg-body"><span class="spin"></span> Analizando la carta…</div>';
+  spinDiv.innerHTML='<div class="msg-label">Kairós · IA</div><div class="msg-body"><span class="spin"></span> Analizando la carta…</div>';
   historial.appendChild(spinDiv);
   historial.scrollTop=historial.scrollHeight;
   try{
@@ -1629,7 +1629,7 @@ function renderChat(){
     if(i===0) return; // No mostrar el contexto interno de carta
     const div=document.createElement('div');
     div.className=`chat-msg ${msg.role}`;
-    const label=msg.role==='user'?'Tu pregunta':'Silvia Ceres · IA';
+    const label=msg.role==='user'?'Tu pregunta':'Kairós · IA';
     div.innerHTML=`<div class="msg-label">${label}</div><div class="msg-body">${escHtml(msg.content)}</div>`;
     historial.appendChild(div);
   });
@@ -1638,7 +1638,7 @@ function renderChat(){
     historial.innerHTML='';
     const div=document.createElement('div');
     div.className='chat-msg assistant';
-    div.innerHTML=`<div class="msg-label">Silvia Ceres · IA · Análisis inicial</div><div class="msg-body">${escHtml(chatHistory[1].content)}</div>`;
+    div.innerHTML=`<div class="msg-label">Kairós · IA · Análisis inicial</div><div class="msg-body">${escHtml(chatHistory[1].content)}</div>`;
     historial.appendChild(div);
   }
   historial.scrollTop=historial.scrollHeight;
@@ -1660,17 +1660,17 @@ function nuevaCarta(){
 function buildSaveText(){
   if(!cartaData)return'No hay carta calculada.';
   const meta=cartaData.meta||{};
-  let t=`════════════════════════════════════════════════════════\nASTROLOGÍA HORARIA · MÉTODO SILVIA CERES\n© Celina Sasiain\n════════════════════════════════════════════════════════\n\nPREGUNTA: ${meta.pregunta||'(no especificada)'}\n\nDATOS DE LA CARTA\nFecha: ${meta.fecha} ${meta.hora} (UTC${meta.tz>=0?'+':''}${meta.tz})\nLugar: ${meta.ciudad||''} (Lat ${meta.lat}, Lon ${meta.lon})\n\n`;
+  let t=`════════════════════════════════════════════════════════\nKAIRÓS · ASTROLOGÍA HORARIA\n© Celina Sasiain\n════════════════════════════════════════════════════════\n\nPREGUNTA: ${meta.pregunta||'(no especificada)'}\n\nDATOS DE LA CARTA\nFecha: ${meta.fecha} ${meta.hora} (UTC${meta.tz>=0?'+':''}${meta.tz})\nLugar: ${meta.ciudad||''} (Lat ${meta.lat}, Lon ${meta.lon})\n\n`;
   t+=buildCartaText(cartaData);
   if(chatHistory.length>1){
-    t+=`\n════════════════════════════════════════════════════════\nCONVERSACIÓN CON IA · MÉTODO SILVIA CERES\n════════════════════════════════════════════════════════\n\n`;
+    t+=`\n════════════════════════════════════════════════════════\nCONVERSACIÓN CON IA · KAIRÓS\n════════════════════════════════════════════════════════\n\n`;
     chatHistory.forEach((msg,i)=>{
       if(i===0)return;
       const label=msg.role==='user'?'CONSULTANTE':'ANÁLISIS IA';
       t+=`[${label}]\n${msg.content}\n\n`;
     });
   }
-  t+=`════════════════════════════════════════════════════════\nGenerado con Horaria Silvia Ceres · © Celina Sasiain\n════════════════════════════════════════════════════════`;
+  t+=`════════════════════════════════════════════════════════\nGenerado con Kairós · © Celina Sasiain\n════════════════════════════════════════════════════════`;
   return t;
 }
 
@@ -1687,7 +1687,7 @@ function guardarTXT(){
 function guardarJSON(){
   if(!cartaData){alert('No hay carta calculada.');return;}
   const obj={
-    meta:{...cartaData.meta,generado:new Date().toISOString(),software:'Horaria Silvia Ceres © Celina Sasiain'},
+    meta:{...cartaData.meta,generado:new Date().toISOString(),software:'Kairós · Astrología Horaria · Celina Sasiain © Celina Sasiain'},
     carta:{jd:cartaData.jd,asc:cartaData.asc,mc:cartaData.mc,cusps:cartaData.cusps,planets:cartaData.planets},
     conversacion:chatHistory.slice(1).map(m=>({rol:m.role,texto:m.content}))
   };
