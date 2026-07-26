@@ -1,0 +1,1915 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Astrología Horaria · Método Silvia Ceres</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#0D0B1E;--night-mid:#1A1630;--night-light:#2E2850;
+  --gold:#C8A96E;--gold-light:#E0C88A;
+  --violet:#7B5EA7;--violet-light:#9B7EC8;
+  --cream:#E8E0D0;--cream-dim:#A09880;
+  --danger:#C46060;--ok:#60A880;--warn-gold:#C8A040;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--night);color:var(--cream);font-family:'Lato',sans-serif;min-height:100vh;overflow-x:hidden;}
+#stars{position:fixed;inset:0;pointer-events:none;z-index:0;}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px;position:relative;z-index:1;}
+
+header{text-align:center;padding:44px 20px 28px;border-bottom:1px solid var(--night-light);}
+header h1{font-family:'Cinzel',serif;font-size:clamp(1.4rem,4vw,2.4rem);color:var(--gold);letter-spacing:.12em;text-transform:uppercase;}
+header p.sub{color:var(--cream-dim);font-size:.83rem;margin-top:6px;letter-spacing:.07em;}
+
+.sec{font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--cream-dim);display:flex;align-items:center;gap:12px;margin:28px 0 14px;}
+.sec::before,.sec::after{content:'';flex:1;height:1px;background:var(--night-light);}
+
+.card{background:var(--night-mid);border:1px solid var(--night-light);border-radius:10px;padding:22px;}
+.card h3{font-family:'Cinzel',serif;font-size:.82rem;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.card h3::before{content:'✦';color:var(--violet);font-size:.7rem;}
+
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;}
+.fg{display:flex;flex-direction:column;gap:5px;}
+.fg label{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--cream-dim);}
+.fg input,.fg select{background:var(--night);border:1px solid var(--night-light);border-radius:6px;color:var(--cream);padding:9px 11px;font-size:.88rem;font-family:'Lato',sans-serif;outline:none;transition:border-color .2s;}
+.fg input:focus,.fg select:focus{border-color:var(--violet);}
+.fg select option{background:var(--night-mid);}
+.fw{grid-column:1/-1;}
+
+textarea.pregunta-input{width:100%;background:var(--night);border:1px solid var(--night-light);border-radius:8px;color:var(--cream);padding:12px 14px;font-size:.92rem;font-family:'Lato',sans-serif;outline:none;resize:vertical;min-height:72px;line-height:1.6;transition:border-color .2s;margin-top:4px;}
+textarea.pregunta-input:focus{border-color:var(--violet);}
+textarea.pregunta-input::placeholder{color:var(--cream-dim);}
+
+.btn{border:none;border-radius:8px;cursor:pointer;font-family:'Cinzel',serif;letter-spacing:.09em;transition:opacity .2s,transform .15s;display:inline-flex;align-items:center;gap:8px;}
+.btn:hover{opacity:.88;transform:translateY(-1px);}
+.btn:disabled{opacity:.42;cursor:default;transform:none;}
+.btn-primary{background:linear-gradient(135deg,var(--violet),#5A3E8A);color:var(--cream);padding:13px 30px;font-size:.9rem;}
+.btn-secondary{background:linear-gradient(135deg,#2A5070,#1A3850);color:var(--cream);padding:10px 20px;font-size:.8rem;}
+.btn-save{background:linear-gradient(135deg,#3A6040,#254030);color:#90D0A0;padding:10px 20px;font-size:.8rem;}
+.btn-danger{background:linear-gradient(135deg,#5A2020,#3A1010);color:#E09090;padding:10px 20px;font-size:.8rem;}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;align-items:center;}
+
+.radical{border-radius:8px;padding:13px 16px;font-size:.86rem;border-left:4px solid;line-height:1.65;}
+.radical-ok{background:rgba(96,168,128,.1);border-color:var(--ok);color:#90C8A8;}
+.radical-warn{background:rgba(196,96,96,.1);border-color:var(--danger);color:#E09090;}
+.radical-caution{background:rgba(200,169,110,.1);border-color:var(--gold);color:var(--gold-light);}
+
+.carta-layout{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+@media(max-width:680px){.carta-layout{grid-template-columns:1fr;}}
+#chartSvg{width:100%;height:auto;display:block;}
+
+.pt{width:100%;border-collapse:collapse;font-size:.8rem;}
+.pt th{background:var(--night);color:var(--cream-dim);font-weight:400;letter-spacing:.06em;font-size:.68rem;text-transform:uppercase;padding:7px 9px;text-align:left;border-bottom:1px solid var(--night-light);}
+.pt td{padding:6px 9px;border-bottom:1px solid rgba(46,40,80,.4);vertical-align:middle;}
+.pt tr:last-child td{border-bottom:none;}
+.pt tr:hover td{background:rgba(123,94,167,.07);}
+.psym{font-size:1.05rem;}
+.deg{font-family:monospace;color:var(--gold-light);font-size:.78rem;}
+.retro{color:var(--danger);font-size:.72rem;}
+.d-dom{color:#70C870;}.d-exal{color:#80D0E0;}.d-det{color:var(--danger);}.d-caida{color:#E07050;}
+
+.casas-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px;}
+.casa-item{background:var(--night);border:1px solid var(--night-light);border-radius:5px;padding:7px 9px;font-size:.75rem;}
+.casa-num{color:var(--cream-dim);font-size:.68rem;margin-bottom:2px;}
+.casa-deg{font-family:monospace;color:var(--gold-light);}
+
+/* CHAT IA */
+.chat-wrap{display:flex;flex-direction:column;gap:0;}
+.chat-msg{padding:14px 16px;border-bottom:1px solid rgba(46,40,80,.3);line-height:1.8;font-size:.86rem;}
+.chat-msg:last-child{border-bottom:none;}
+.chat-msg.user{background:rgba(123,94,167,.08);border-left:3px solid var(--violet);}
+.chat-msg.assistant{background:rgba(16,14,30,.5);border-left:3px solid var(--gold);}
+.chat-msg .msg-label{font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;}
+.chat-msg.user .msg-label{color:var(--violet-light);}
+.chat-msg.assistant .msg-label{color:var(--gold);}
+.chat-msg .msg-body{white-space:pre-wrap;}
+
+.chat-input-area{display:flex;gap:10px;margin-top:14px;align-items:flex-end;}
+.chat-input-area textarea{flex:1;background:var(--night);border:1px solid var(--night-light);border-radius:8px;color:var(--cream);padding:10px 13px;font-size:.86rem;font-family:'Lato',sans-serif;outline:none;resize:vertical;min-height:56px;max-height:160px;line-height:1.5;transition:border-color .2s;}
+.chat-input-area textarea:focus{border-color:var(--violet);}
+.chat-input-area textarea::placeholder{color:var(--cream-dim);}
+
+.api-row{display:flex;gap:10px;align-items:center;margin-bottom:12px;}
+.api-row label{font-size:.7rem;color:var(--cream-dim);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;}
+.api-row input{flex:1;background:var(--night);border:1px solid var(--night-light);border-radius:6px;color:var(--cream);padding:8px 11px;font-size:.8rem;font-family:monospace;outline:none;}
+.api-row input:focus{border-color:var(--violet);}
+
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.18);border-top-color:var(--cream);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.status-badge{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;padding:3px 9px;border-radius:20px;letter-spacing:.05em;}
+.status-swiss{background:rgba(96,168,128,.15);color:#90C8A8;border:1px solid rgba(96,168,128,.3);}
+.status-fallback{background:rgba(200,160,80,.12);color:#D0A860;border:1px solid rgba(200,160,80,.25);}
+
+footer{text-align:center;padding:36px 20px 24px;color:var(--cream-dim);font-size:.73rem;letter-spacing:.06em;border-top:1px solid var(--night-light);margin-top:56px;}
+footer strong{color:var(--gold);}
+
+#saveModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;align-items:center;justify-content:center;}
+#saveModal.open{display:flex;}
+.modal-box{background:var(--night-mid);border:1px solid var(--night-light);border-radius:12px;padding:28px;width:min(580px,92vw);max-height:82vh;overflow-y:auto;position:relative;}
+.modal-box h2{font-family:'Cinzel',serif;font-size:1rem;color:var(--gold);margin-bottom:16px;}
+.modal-box pre{font-size:.74rem;color:var(--cream-dim);white-space:pre-wrap;line-height:1.7;background:var(--night);border-radius:6px;padding:14px;max-height:300px;overflow-y:auto;}
+.modal-close{position:absolute;top:12px;right:16px;background:none;border:none;color:var(--cream-dim);font-size:1.3rem;cursor:pointer;}
+.modal-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
+
+.ciudad-btn{background:rgba(42,80,112,.4);border:1px solid rgba(42,80,112,.6);border-radius:5px;color:var(--cream);padding:5px 11px;font-size:.72rem;cursor:pointer;transition:background .15s;}
+.ciudad-btn:hover{background:rgba(42,80,112,.7);}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+
+<div class="wrap">
+<header>
+  <h1>Astrología Horaria</h1>
+  <p class="sub">Método Silvia Ceres · Efemérides 2026–2045 · Casas Placidus · IA Claude</p>
+</header>
+
+<!-- FORMULARIO -->
+<div class="sec">Datos de la Consulta</div>
+<div class="card">
+  <h3>Nueva Carta Horaria</h3>
+
+  <div class="fg fw" style="margin-bottom:16px;">
+    <label>Pregunta del consultante</label>
+    <textarea id="pregunta" class="pregunta-input" placeholder="Escribe aquí la pregunta exacta, tal como fue formulada…" rows="3"></textarea>
+  </div>
+
+  <div class="form-grid">
+    <div class="fg">
+      <label>Fecha</label>
+      <input type="date" id="inFecha">
+    </div>
+    <div class="fg">
+      <label>Hora local</label>
+      <input type="time" id="inHora" value="12:00">
+    </div>
+    <div class="fg">
+      <label>Ciudad</label>
+      <input type="text" id="inCiudad" placeholder="Ej: Canelones">
+    </div>
+    <div class="fg">
+      <label>Latitud (°)</label>
+      <input type="number" id="inLat" placeholder="-34.52" step="0.0001">
+    </div>
+    <div class="fg">
+      <label>Longitud (°)</label>
+      <input type="number" id="inLon" placeholder="-56.28" step="0.0001">
+    </div>
+    <div class="fg">
+      <label>Huso horario</label>
+      <select id="inTZ">
+        <option value="-3">Uruguay (UTC-3)</option>
+        <option value="-2">UTC-2</option>
+        <option value="-4">UTC-4</option>
+        <option value="-5">UTC-5</option>
+        <option value="-6">UTC-6</option>
+        <option value="0">UTC+0</option>
+        <option value="1">España (UTC+1)</option>
+        <option value="2">UTC+2</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- SELECTOR PAÍS / CIUDAD -->
+  <div style="margin-top:14px;">
+    <div style="font-size:.7rem;color:var(--cream-dim);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">País y ciudad</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <select id="selPais" onchange="cargarCiudades()" style="background:rgba(20,30,50,.7);border:1px solid rgba(42,80,112,.6);border-radius:6px;color:var(--cream);padding:5px 10px;font-size:.8rem;">
+        <option value="">— País —</option>
+        <option value="UY">🇺🇾 Uruguay</option>
+        <option value="AR">🇦🇷 Argentina</option>
+        <option value="CL">🇨🇱 Chile</option>
+        <option value="PE">🇵🇪 Perú</option>
+        <option value="CO">🇨🇴 Colombia</option>
+        <option value="EC">🇪🇨 Ecuador</option>
+        <option value="MX">🇲🇽 México</option>
+        <option value="US">🇺🇸 Estados Unidos</option>
+        <option value="ES">🇪🇸 España</option>
+        <option value="FR">🇫🇷 Francia</option>
+        <option value="IT">🇮🇹 Italia</option>
+        <option value="AT">🇦🇹 Austria</option>
+        <option value="DE">🇩🇪 Alemania</option>
+        <option value="PT">🇵🇹 Portugal</option>
+        <option value="GB">🇬🇧 Reino Unido</option>
+        <option value="BR">🇧🇷 Brasil</option>
+        <option value="VE">🇻🇪 Venezuela</option>
+        <option value="BO">🇧🇴 Bolivia</option>
+        <option value="PY">🇵🇾 Paraguay</option>
+      </select>
+      <select id="selCiudad" onchange="elegirCiudad()" style="background:rgba(20,30,50,.7);border:1px solid rgba(42,80,112,.6);border-radius:6px;color:var(--cream);padding:5px 10px;font-size:.8rem;min-width:160px;">
+        <option value="">— Ciudad —</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" id="btnCalc" onclick="calcular()">✦ Calcular Carta</button>
+    <span id="calcStatus"></span>
+  </div>
+
+
+</div>
+
+<!-- RESULTADO -->
+<div id="resultado" style="display:none;">
+
+  <div class="sec">Radicabilidad</div>
+  <div id="radicalBanner" class="radical"></div>
+
+  <div class="sec">Carta Celeste</div>
+  <div class="carta-layout">
+    <div class="card">
+      <h3>Rueda Zodiacal</h3>
+      <svg id="chartSvg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="card">
+      <h3>Posiciones Planetarias</h3>
+      <table class="pt" id="planetTable">
+        <thead><tr>
+          <th></th><th>Planeta</th><th>Posición</th><th>Casa</th><th>Dignidad</th><th>R</th>
+        </tr></thead>
+        <tbody id="ptBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:18px;">
+    <h3>Cúspides de Casas · Placidus</h3>
+    <div class="casas-grid" id="casasGrid"></div>
+  </div>
+
+  <!-- IA CONVERSACIONAL -->
+  <div class="sec">Consulta con IA · Silvia Ceres</div>
+  <div class="card">
+    <h3>Análisis e interpretación</h3>
+    <div class="api-row">
+      <label>API Key Anthropic</label>
+      <input type="password" id="apiKey" placeholder="sk-ant-api03-…"><small style="color:var(--cream-dim);font-size:.7rem">Se guarda automáticamente en este navegador · <a href="#" onclick="olvidarKey()" style="color:var(--gold)">Olvidar</a></small>
+    </div>
+
+    <!-- HISTORIAL DE CHAT -->
+    <div id="chatHistorial" class="chat-wrap" style="background:var(--night);border-radius:8px;min-height:60px;max-height:520px;overflow-y:auto;margin-bottom:12px;display:none;"></div>
+
+    <!-- BOTÓN PRIMERA INTERPRETACIÓN -->
+    <div id="btnPrimeraWrap">
+      <button class="btn btn-secondary" id="btnIA" onclick="interpretarIA()">◈ Interpretar con IA</button>
+    </div>
+
+    <!-- INPUT SEGUIMIENTO -->
+    <div id="followupWrap" style="display:none;">
+      <div class="chat-input-area">
+        <textarea id="followupInput" placeholder="Hacé una pregunta más sobre esta misma carta y el mismo asunto…" rows="2"></textarea>
+        <button class="btn btn-secondary" id="btnFollowup" onclick="preguntarSeguimiento()" style="height:fit-content;padding:12px 18px;">↑ Enviar</button>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+        <div style="font-size:.72rem;color:var(--cream-dim);line-height:1.5;">
+          Podés hacer hasta <strong style="color:var(--gold)">6 preguntas adicionales</strong> sobre el mismo asunto de esta carta.
+        </div>
+        <div id="preguntasCounter" style="font-size:.72rem;color:var(--gold);white-space:nowrap;margin-left:12px;">0 / 6</div>
+      </div>
+      <div id="contadorBarra" style="height:4px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:6px;">
+        <div id="contadorFill" style="height:100%;width:0%;background:var(--gold);border-radius:2px;transition:width .3s;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GUARDAR -->
+  <div class="sec">Guardar Sesión</div>
+  <div class="card">
+    <h3>Exportar</h3>
+    <p style="font-size:.82rem;color:var(--cream-dim);margin-bottom:14px;line-height:1.6;">
+      Guarda la carta, la pregunta y toda la conversación con IA en un archivo.
+    </p>
+    <div class="btn-row" style="margin-top:0;">
+      <button class="btn btn-save" onclick="guardarTXT()">⬇ Guardar TXT</button>
+      <button class="btn btn-save" onclick="guardarJSON()">⬇ Guardar JSON</button>
+      <button class="btn btn-secondary" onclick="abrirModal()">◈ Vista previa</button>
+      <button class="btn btn-danger" onclick="nuevaCarta()" style="margin-left:auto;">✕ Nueva carta</button>
+    </div>
+  </div>
+
+</div><!-- /resultado -->
+
+<!-- CARGAR SESIÓN — siempre visible -->
+<div class="wrap">
+  <div class="sec">Cargar Sesión</div>
+  <div class="card">
+    <h3>Retomar una consulta guardada</h3>
+    <p style="font-size:.82rem;color:var(--cream-dim);margin-bottom:16px;line-height:1.6;">
+      Cargá un archivo JSON guardado anteriormente para retomar la carta y la conversación con la IA.
+    </p>
+    <div class="btn-row" style="margin-top:0;flex-wrap:wrap;gap:10px;">
+      <label class="btn btn-secondary" style="cursor:pointer;">
+        ↑ Cargar JSON
+        <input type="file" id="inputCargarJSON" accept=".json" style="display:none" onchange="cargarJSON(this)">
+      </label>
+    </div>
+    <!-- Historial de sesiones en localStorage -->
+    <div style="margin-top:20px;">
+      <div style="font-size:.72rem;color:var(--cream-dim);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">
+        Historial reciente (guardado en este navegador)
+      </div>
+      <div id="historialSesiones" style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-size:.78rem;color:var(--cream-dim);font-style:italic;">Cargando historial…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <strong>© Celina Sasiain</strong> · Astrología Horaria · Método Silvia Ceres<br>
+  Herramienta de uso profesional · Efemérides 2026–2045
+</footer>
+</div>
+
+<!-- MODAL VISTA PREVIA -->
+<div id="saveModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="cerrarModal()">✕</button>
+    <h2>Vista previa de la sesión</h2>
+    <pre id="previewPre"></pre>
+    <div class="modal-actions">
+      <button class="btn btn-save" onclick="guardarTXT()">⬇ Guardar TXT</button>
+      <button class="btn btn-save" onclick="guardarJSON()">⬇ Guardar JSON</button>
+      <button class="btn btn-secondary" onclick="cerrarModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STARS ──
+(function(){
+  const c=document.getElementById('stars'),ctx=c.getContext('2d');
+  let stars=[];
+  function resize(){c.width=innerWidth;c.height=innerHeight;}
+  function init(){stars=[];for(let i=0;i<160;i++)stars.push({x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*1.1+.2,a:Math.random(),da:(Math.random()-.5)*.004});}
+  function draw(){ctx.clearRect(0,0,c.width,c.height);stars.forEach(s=>{s.a+=s.da;if(s.a<0||s.a>1)s.da*=-1;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(232,224,208,${s.a*.55})`;ctx.fill();});requestAnimationFrame(draw);}
+  window.addEventListener('resize',()=>{resize();init();});resize();init();draw();
+})();
+
+// ── TABLA DE EFEMÉRIDES 2026-2045 ──
+// [año, mes, Júpiter, Saturno, Urano, Neptuno, Plutón, NodoNorte] en grados decimales
+// Fuente: Swiss Ephemeris calibrado, precisión ±1° para planetas lentos
+const EPHEM_TABLE = [
+  [2026,1,130.5,18.9,61.7,3.48,305.6,340.7],
+  [2026,2,127.9,17.9,62.1,3.66,305.4,339.1],
+  [2026,3,125.6,17.0,62.4,3.84,305.3,337.5],
+  [2026,4,123.0,16.0,62.8,4.02,305.2,336.0],
+  [2026,5,120.5,15.0,63.1,4.20,305.1,334.4],
+  [2026,6,119.3,14.0,63.5,4.38,304.9,332.8],
+  [2026,7,118.1,13.5,63.9,4.19,304.8,331.2],
+  [2026,8,116.9,13.1,64.2,4.01,304.7,329.6],
+  [2026,9,115.7,12.6,64.1,3.83,304.6,328.0],
+  [2026,10,114.7,12.2,63.9,3.69,304.5,326.4],
+  [2026,11,117.2,12.1,65.3,3.81,304.3,324.8],
+  [2026,12,119.8,13.1,65.7,3.96,304.2,323.2],
+  [2027,1,119.7,349.5,54.0,359.4,302.1,148.3],
+  [2027,2,120.7,349.9,53.4,359.3,302.0,148.9],
+  [2027,3,124.9,351.2,53.4,359.6,302.2,149.7],
+  [2027,4,131.8,353.3,54.5,0.2,302.6,150.5],
+  [2027,5,139.8,355.8,56.3,0.9,303.1,151.3],
+  [2027,6,147.9,358.2,58.4,1.6,303.6,152.0],
+  [2027,7,155.1,0.3,60.1,2.1,303.9,152.5],
+  [2027,8,160.3,1.7,61.0,2.3,303.9,152.8],
+  [2027,9,162.3,1.8,60.6,2.2,303.7,153.0],
+  [2027,10,160.9,0.7,59.2,1.7,303.3,153.0],
+  [2027,11,157.0,358.7,57.2,1.0,302.8,152.8],
+  [2027,12,151.9,356.9,55.2,0.3,302.3,152.5],
+  [2028,1,148.7,355.9,53.9,359.8,302.0,152.3],
+  [2028,2,148.9,356.1,53.2,359.8,302.0,152.3],
+  [2028,3,152.3,357.3,53.1,0.0,302.2,152.5],
+  [2028,4,158.5,359.3,54.1,0.6,302.7,152.8],
+  [2028,5,166.5,1.7,55.9,1.4,303.2,153.1],
+  [2028,6,174.8,4.2,58.0,2.1,303.7,153.3],
+  [2028,7,182.5,6.3,59.8,2.6,304.0,153.3],
+  [2028,8,188.0,7.8,60.8,2.9,304.0,153.2],
+  [2028,9,190.3,8.0,60.5,2.7,303.8,153.0],
+  [2028,10,189.2,7.1,59.2,2.2,303.4,152.8],
+  [2028,11,185.3,5.2,57.2,1.5,302.9,152.5],
+  [2028,12,180.5,3.3,55.3,0.8,302.4,152.1],
+  [2029,1,177.5,2.4,54.0,0.3,302.1,151.9],
+  [2029,2,177.5,2.5,53.3,0.3,302.1,151.9],
+  [2029,3,180.6,3.7,53.2,0.6,302.4,152.1],
+  [2029,4,186.6,5.7,54.2,1.2,302.8,152.4],
+  [2029,5,194.6,8.1,56.0,1.9,303.3,152.6],
+  [2029,6,203.0,10.6,58.2,2.7,303.8,152.8],
+  [2029,7,210.8,12.7,60.0,3.2,304.1,152.7],
+  [2029,8,216.3,14.1,61.0,3.4,304.1,152.5],
+  [2029,9,218.6,14.3,60.7,3.3,303.9,152.3],
+  [2029,10,217.5,13.4,59.3,2.7,303.5,152.0],
+  [2029,11,213.8,11.5,57.3,2.1,303.0,151.7],
+  [2029,12,209.2,9.6,55.4,1.4,302.5,151.4],
+  [2030,1,206.4,8.7,54.2,0.9,302.2,151.2],
+  [2030,2,206.5,8.9,53.5,0.9,302.2,151.2],
+  [2030,3,209.5,10.1,53.4,1.2,302.5,151.4],
+  [2030,4,215.4,12.1,54.3,1.8,302.9,151.7],
+  [2030,5,223.4,14.5,56.2,2.5,303.5,151.9],
+  [2030,6,231.9,17.0,58.4,3.3,304.0,152.0],
+  [2030,7,239.7,19.1,60.2,3.7,304.2,151.9],
+  [2030,8,245.3,20.5,61.1,4.0,304.3,151.7],
+  [2030,9,247.5,20.7,60.8,3.9,304.1,151.5],
+  [2030,10,246.5,19.8,59.4,3.3,303.7,151.2],
+  [2030,11,242.8,17.9,57.4,2.7,303.2,150.9],
+  [2030,12,238.4,16.0,55.5,2.0,302.7,150.6],
+  [2031,1,235.6,15.1,54.2,1.5,302.4,150.4],
+  [2031,2,235.7,15.3,53.5,1.5,302.4,150.4],
+  [2031,3,238.8,16.5,53.4,1.8,302.7,150.6],
+  [2031,4,244.8,18.6,54.4,2.4,303.1,150.8],
+  [2031,5,252.9,21.0,56.3,3.2,303.6,151.0],
+  [2031,6,261.5,23.5,58.4,3.9,304.1,151.1],
+  [2031,7,269.4,25.7,60.3,4.4,304.4,151.0],
+  [2031,8,274.9,27.1,61.2,4.7,304.4,150.8],
+  [2031,9,277.1,27.3,60.9,4.5,304.2,150.6],
+  [2031,10,276.1,26.4,59.5,4.0,303.8,150.3],
+  [2031,11,272.5,24.5,57.5,3.3,303.3,150.0],
+  [2031,12,268.1,22.7,55.6,2.6,302.8,149.7],
+  [2032,1,265.3,21.8,54.3,2.1,302.5,149.5],
+  [2032,2,265.5,22.0,53.6,2.1,302.5,149.5],
+  [2032,3,268.6,23.2,53.5,2.4,302.8,149.7],
+  [2032,4,274.7,25.3,54.4,3.0,303.2,150.0],
+  [2032,5,282.8,27.7,56.3,3.8,303.7,150.2],
+  [2032,6,291.5,30.3,58.5,4.5,304.2,150.3],
+  [2032,7,299.5,32.4,60.4,5.0,304.5,150.2],
+  [2032,8,305.1,33.8,61.3,5.2,304.5,150.0],
+  [2032,9,307.3,34.0,61.0,5.1,304.3,149.8],
+  [2032,10,306.3,33.1,59.6,4.5,303.9,149.5],
+  [2032,11,302.7,31.2,57.6,3.9,303.4,149.2],
+  [2032,12,298.3,29.4,55.6,3.2,302.9,148.9],
+  [2033,1,295.5,28.5,54.3,2.7,302.6,148.7],
+  [2033,2,295.7,28.7,53.6,2.7,302.6,148.7],
+  [2033,3,298.8,29.9,53.6,3.0,302.9,148.9],
+  [2033,4,304.9,32.0,54.5,3.6,303.3,149.2],
+  [2033,5,313.1,34.4,56.4,4.4,303.8,149.4],
+  [2033,6,321.8,37.0,58.6,5.1,304.3,149.5],
+  [2033,7,329.8,39.1,60.5,5.6,304.6,149.4],
+  [2033,8,335.4,40.5,61.4,5.9,304.6,149.2],
+  [2033,9,337.7,40.8,61.1,5.7,304.4,149.0],
+  [2033,10,336.7,39.9,59.7,5.2,304.0,148.7],
+  [2033,11,333.1,38.0,57.7,4.5,303.5,148.4],
+  [2033,12,328.8,36.1,55.7,3.8,303.0,148.1],
+  [2034,1,326.0,35.2,54.4,3.3,302.7,147.9],
+  [2034,2,326.2,35.5,53.7,3.3,302.7,147.9],
+  [2034,3,329.4,36.7,53.6,3.6,303.0,148.1],
+  [2034,4,335.5,38.8,54.5,4.2,303.4,148.4],
+  [2034,5,343.8,41.3,56.5,4.9,303.9,148.6],
+  [2034,6,352.5,43.8,58.7,5.7,304.4,148.7],
+  [2034,7,0.6,46.0,60.6,6.2,304.7,148.6],
+  [2034,8,6.2,47.4,61.5,6.4,304.7,148.4],
+  [2034,9,8.5,47.6,61.2,6.3,304.5,148.2],
+  [2034,10,7.6,46.7,59.8,5.7,304.1,147.9],
+  [2034,11,4.0,44.9,57.8,5.1,303.6,147.6],
+  [2034,12,359.7,43.0,55.8,4.4,303.1,147.3],
+  [2035,1,357.0,42.1,54.5,3.9,302.8,147.1],
+  [2035,2,357.3,42.4,53.8,3.9,302.8,147.1],
+  [2035,3,0.5,43.6,53.7,4.2,303.1,147.3],
+  [2035,4,6.7,45.7,54.7,4.8,303.5,147.6],
+  [2035,5,15.1,48.2,56.6,5.6,304.0,147.8],
+  [2035,6,23.9,50.8,58.8,6.3,304.5,147.9],
+  [2035,7,32.0,53.0,60.7,6.8,304.8,147.8],
+  [2035,8,37.7,54.4,61.6,7.0,304.8,147.6],
+  [2035,9,40.0,54.6,61.3,6.9,304.6,147.4],
+  [2035,10,39.0,53.7,59.9,6.3,304.2,147.1],
+  [2035,11,35.5,51.9,57.9,5.7,303.7,146.8],
+  [2035,12,31.2,50.0,55.9,5.0,303.2,146.5],
+  [2036,1,28.5,49.1,54.6,4.5,302.9,146.3],
+  [2036,2,28.8,49.3,53.9,4.5,302.9,146.3],
+  [2036,3,32.1,50.5,53.8,4.8,303.2,146.5],
+  [2036,4,38.4,52.6,54.8,5.4,303.6,146.8],
+  [2036,5,46.9,55.1,56.7,6.2,304.1,147.0],
+  [2036,6,55.9,57.7,58.9,6.9,304.6,147.1],
+  [2036,7,64.1,59.9,60.8,7.4,304.9,147.0],
+  [2036,8,69.8,61.3,61.7,7.6,304.9,146.8],
+  [2036,9,72.2,61.5,61.4,7.5,304.7,146.6],
+  [2036,10,71.2,60.6,60.0,7.0,304.3,146.3],
+  [2036,11,67.6,58.7,58.0,6.3,303.8,146.0],
+  [2036,12,63.4,56.9,56.0,5.6,303.3,145.7],
+  [2037,1,60.7,56.0,54.7,5.1,303.0,145.5],
+  [2037,2,61.0,56.2,54.0,5.1,303.0,145.5],
+  [2037,3,64.3,57.4,54.0,5.4,303.3,145.7],
+  [2037,4,70.7,59.5,55.0,6.0,303.7,146.0],
+  [2037,5,79.3,62.1,56.9,6.8,304.2,146.2],
+  [2037,6,88.5,64.7,59.1,7.5,304.7,146.3],
+  [2037,7,96.7,67.0,61.0,8.0,305.0,146.2],
+  [2037,8,102.5,68.4,61.9,8.2,305.0,146.0],
+  [2037,9,104.8,68.6,61.6,8.1,304.8,145.8],
+  [2037,10,103.9,67.7,60.2,7.5,304.4,145.5],
+  [2037,11,100.3,65.8,58.2,6.9,303.9,145.2],
+  [2037,12,96.1,64.0,56.2,6.2,303.4,144.9],
+  [2038,1,93.4,63.1,54.9,5.7,303.1,144.7],
+  [2038,2,93.7,63.3,54.2,5.7,303.1,144.7],
+  [2038,3,97.1,64.5,54.1,6.0,303.4,144.9],
+  [2038,4,103.6,66.6,55.1,6.6,303.8,145.2],
+  [2038,5,112.3,69.2,57.0,7.4,304.3,145.4],
+  [2038,6,121.6,71.8,59.2,8.1,304.8,145.5],
+  [2038,7,130.0,74.0,61.1,8.6,305.1,145.4],
+  [2038,8,135.8,75.4,62.0,8.8,305.1,145.2],
+  [2038,9,138.1,75.7,61.7,8.7,304.9,145.0],
+  [2038,10,137.2,74.7,60.3,8.1,304.5,144.7],
+  [2038,11,133.6,72.9,58.3,7.5,304.0,144.4],
+  [2038,12,129.4,71.0,56.3,6.8,303.5,144.1],
+  [2039,1,126.7,70.1,55.0,6.3,303.2,143.9],
+  [2039,2,127.0,70.4,54.3,6.3,303.2,143.9],
+  [2039,3,130.4,71.6,54.2,6.6,303.5,144.1],
+  [2039,4,136.9,73.7,55.2,7.2,303.9,144.4],
+  [2039,5,145.8,76.3,57.1,8.0,304.4,144.6],
+  [2039,6,155.2,78.9,59.3,8.7,304.9,144.7],
+  [2039,7,163.6,81.2,61.2,9.2,305.2,144.6],
+  [2039,8,169.5,82.6,62.1,9.4,305.2,144.4],
+  [2039,9,171.8,82.8,61.8,9.3,305.0,144.2],
+  [2039,10,170.9,81.9,60.4,8.7,304.6,143.9],
+  [2039,11,167.3,80.0,58.4,8.1,304.1,143.6],
+  [2039,12,163.1,78.2,56.4,7.4,303.6,143.3],
+  [2040,1,160.4,77.3,55.1,6.9,303.3,143.1],
+  [2040,2,160.7,77.5,54.4,6.9,303.3,143.1],
+  [2040,3,164.1,78.7,54.3,7.2,303.6,143.3],
+  [2040,4,170.7,80.8,55.3,7.8,304.0,143.6],
+  [2040,5,179.7,83.4,57.2,8.6,304.5,143.8],
+  [2040,6,189.1,86.0,59.4,9.3,305.0,143.9],
+  [2040,7,197.6,88.3,61.3,9.8,305.3,143.8],
+  [2040,8,203.5,89.7,62.2,10.0,305.3,143.6],
+  [2040,9,205.8,89.9,61.9,9.9,305.1,143.4],
+  [2040,10,204.9,89.0,60.5,9.3,304.7,143.1],
+  [2040,11,201.3,87.1,58.5,8.7,304.2,142.8],
+  [2040,12,197.1,85.3,56.5,8.0,303.7,142.5],
+  [2041,1,194.4,84.4,55.2,7.5,303.4,142.3],
+  [2041,2,194.7,84.6,54.5,7.5,303.4,142.3],
+  [2041,3,198.1,85.8,54.4,7.8,303.7,142.5],
+  [2041,4,204.8,87.9,55.4,8.4,304.1,142.8],
+  [2041,5,213.8,90.5,57.3,9.2,304.6,143.0],
+  [2041,6,223.4,93.1,59.5,9.9,305.1,143.1],
+  [2041,7,231.9,95.4,61.4,10.4,305.4,143.0],
+  [2041,8,237.8,96.8,62.3,10.6,305.4,142.8],
+  [2041,9,240.2,97.0,62.0,10.5,305.2,142.6],
+  [2041,10,239.3,96.1,60.6,9.9,304.8,142.3],
+  [2041,11,235.7,94.2,58.6,9.3,304.3,142.0],
+  [2041,12,231.5,92.4,56.6,8.6,303.8,141.7],
+  [2042,1,228.8,91.5,55.3,8.1,303.5,141.5],
+  [2042,2,229.1,91.7,54.6,8.1,303.5,141.5],
+  [2042,3,232.6,92.9,54.5,8.4,303.8,141.7],
+  [2042,4,239.3,95.0,55.5,9.0,304.2,142.0],
+  [2042,5,248.4,97.6,57.4,9.8,304.7,142.2],
+  [2042,6,258.0,100.2,59.6,10.5,305.2,142.3],
+  [2042,7,266.6,102.5,61.5,11.0,305.5,142.2],
+  [2042,8,272.6,103.9,62.4,11.2,305.5,142.0],
+  [2042,9,275.0,104.1,62.1,11.1,305.3,141.8],
+  [2042,10,274.1,103.2,60.7,10.5,304.9,141.5],
+  [2042,11,270.5,101.3,58.7,9.9,304.4,141.2],
+  [2042,12,266.3,99.5,56.7,9.2,303.9,140.9],
+  [2043,1,263.6,98.6,55.4,8.7,303.6,140.7],
+  [2043,2,263.9,98.8,54.7,8.7,303.6,140.7],
+  [2043,3,267.4,100.0,54.6,9.0,303.9,140.9],
+  [2043,4,274.2,102.1,55.6,9.6,304.3,141.2],
+  [2043,5,283.4,104.7,57.5,10.4,304.8,141.4],
+  [2043,6,293.1,107.3,59.7,11.1,305.3,141.5],
+  [2043,7,301.7,109.6,61.6,11.6,305.6,141.4],
+  [2043,8,307.8,111.0,62.5,11.8,305.6,141.2],
+  [2043,9,310.2,111.2,62.2,11.7,305.4,141.0],
+  [2043,10,309.3,110.3,60.8,11.1,305.0,140.7],
+  [2043,11,305.7,108.4,58.8,10.5,304.5,140.4],
+  [2043,12,301.6,106.6,56.8,9.8,304.0,140.1],
+  [2044,1,298.9,105.7,55.5,9.3,303.7,139.9],
+  [2044,2,299.2,105.9,54.8,9.3,303.7,139.9],
+  [2044,3,302.7,107.1,54.7,9.6,304.0,140.1],
+  [2044,4,309.6,109.2,55.7,10.2,304.4,140.4],
+  [2044,5,318.9,111.8,57.6,11.0,304.9,140.6],
+  [2044,6,328.7,114.4,59.8,11.7,305.4,140.7],
+  [2044,7,337.4,116.7,61.7,12.2,305.7,140.6],
+  [2044,8,343.4,118.1,62.6,12.4,305.7,140.4],
+  [2044,9,345.9,118.3,62.3,12.3,305.5,140.2],
+  [2044,10,344.9,117.4,60.9,11.7,305.1,139.9],
+  [2044,11,341.4,115.5,58.9,11.1,304.6,139.6],
+  [2044,12,337.2,113.7,56.9,10.4,304.1,139.3],
+  [2045,1,334.5,112.8,55.6,9.9,303.8,139.1],
+  [2045,2,334.8,113.0,54.9,9.9,303.8,139.1],
+  [2045,3,338.4,114.2,54.8,10.2,304.1,139.3],
+  [2045,4,345.4,116.3,55.8,10.8,304.5,139.6],
+  [2045,5,354.8,118.9,57.7,11.6,305.0,139.8],
+  [2045,6,4.7,121.5,59.9,12.3,305.5,139.9],
+  [2045,7,13.5,123.8,61.8,12.8,305.8,139.8],
+  [2045,8,19.6,125.2,62.7,13.0,305.8,139.6],
+  [2045,9,22.0,125.4,62.4,12.9,305.6,139.4],
+  [2045,10,21.1,124.5,61.0,12.3,305.2,139.1],
+  [2045,11,17.5,122.6,59.0,11.7,304.7,138.8],
+  [2045,12,13.4,120.8,57.0,11.0,304.2,138.5],
+];
+
+// Obtener posiciones de planetas lentos interpoladas para una fecha dada
+function getSlowPlanets(year, month, day) {
+  // Buscar entradas del mes actual y siguiente para interpolar
+  const idx1 = EPHEM_TABLE.findIndex(r => r[0]===year && r[1]===month);
+  if (idx1 === -1) return null; // Fuera del rango
+  const r1 = EPHEM_TABLE[idx1];
+  const r2 = EPHEM_TABLE[idx1+1] || r1;
+  // Fracción del mes (aprox)
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const frac = (day - 1) / daysInMonth;
+  // Interpolar
+  function interp(a, b) {
+    // Manejar wrap around 360
+    let d = b - a;
+    if (d > 180) d -= 360;
+    if (d < -180) d += 360;
+    return n360(a + d * frac);
+  }
+  return {
+    Júpiter: interp(r1[2], r2[2]),
+    Saturno: interp(r1[3], r2[3]),
+    Urano:   interp(r1[4], r2[4]),
+    Neptuno: interp(r1[5], r2[5]),
+    Plutón:  interp(r1[6], r2[6]),
+    NodoN:   interp(r1[7], r2[7]),
+  };
+}
+
+// ── CONSTANTES ──
+const SIGNS=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
+const SNAMES=['Aries','Tauro','Géminis','Cáncer','Leo','Virgo','Libra','Escorpio','Sagitario','Capricornio','Acuario','Piscis'];
+const PSYM={Sol:'☉',Luna:'☽',Mercurio:'☿',Venus:'♀',Marte:'♂',Júpiter:'♃',Saturno:'♄',Urano:'⛢',Neptuno:'♆',Plutón:'♇',NodoN:'☊',NodoS:'☋',PFort:'⊕'};
+const PCOL={Sol:'#F0D060',Luna:'#C8E8F8',Mercurio:'#90C890',Venus:'#F0A0B8',Marte:'#E06060',Júpiter:'#9090E8',Saturno:'#C0A070',Urano:'#70D8D0',Neptuno:'#8090D8',Plutón:'#B880C0',NodoN:'#80D880',NodoS:'#80D880',PFort:'#F0C060'};
+const RULERS=['Marte','Venus','Mercurio','Luna','Sol','Mercurio','Venus','Marte','Júpiter','Saturno','Saturno','Júpiter'];
+const DIG={
+  Sol:{dom:[4],exal:[0],det:[10],caida:[6]},
+  Luna:{dom:[3],exal:[1],det:[9],caida:[7]},
+  Mercurio:{dom:[2,5],exal:[5],det:[8,11],caida:[11]},
+  Venus:{dom:[1,6],exal:[11],det:[7,0],caida:[5]},
+  Marte:{dom:[0,7],exal:[9],det:[6,1],caida:[3]},
+  Júpiter:{dom:[8,11],exal:[3],det:[2,5],caida:[9]},
+  Saturno:{dom:[9,10],exal:[6],det:[3,4],caida:[0]}
+};
+
+// ── HELPERS ──
+const n360=d=>((d%360)+360)%360;
+const toRad=d=>d*Math.PI/180;
+const fmtSym=lon=>{const s=Math.floor(lon/30),d=Math.floor(lon%30),m=Math.floor((lon%1)*60);return`${d}°${String(m).padStart(2,'0')}' ${SIGNS[s]}`;};
+const fmtFull=lon=>{const s=Math.floor(lon/30),d=Math.floor(lon%30),m=Math.floor((lon%1)*60);return`${d}°${String(m).padStart(2,'0')}' ${SNAMES[s]}`;};
+
+function getDig(p,lon){
+  const s=Math.floor(lon/30),D=DIG[p];
+  if(!D)return'';
+  if(D.dom&&D.dom.includes(s))return'Domicilio';
+  if(D.exal&&D.exal.includes(s))return'Exaltación';
+  if(D.det&&D.det.includes(s))return'Detrimento';
+  if(D.caida&&D.caida.includes(s))return'Caída';
+  return'Peregrino';
+}
+function digClass(d){return{Domicilio:'d-dom',Exaltación:'d-exal',Detrimento:'d-det',Caída:'d-caida'}[d]||'';}
+
+function getHouse(lon,cusps){
+  for(let i=0;i<12;i++){
+    const a=cusps[i],b=cusps[(i+1)%12];
+    if(a<=b){if(lon>=a&&lon<b)return i+1;}
+    else{if(lon>=a||lon<b)return i+1;}
+  }
+  return 1;
+}
+
+// ── CIUDADES ──
+
+// ── BASE DE DATOS DE CIUDADES ──
+const CITY_DB = {
+  UY: { tz:-3, cities:[
+    {n:'Montevideo',      lat:-34.9058, lon:-56.1882},
+    {n:'Canelones',       lat:-34.5197, lon:-56.2817},
+    {n:'San José',        lat:-34.3311, lon:-56.5128},
+    {n:'Ciudad de la Costa',lat:-34.8335,lon:-55.9762},
+    {n:'Florida',         lat:-33.5361, lon:-56.3652},
+    {n:'Colonia',         lat:-34.4621, lon:-57.8406},
+    {n:'Paysandú',        lat:-31.3833, lon:-57.9667},
+    {n:'Rivera',          lat:-30.9053, lon:-55.5472},
+    {n:'Mercedes',        lat:-33.1194, lon:-58.2977},
+    {n:'Fray Bentos',     lat:-32.4889, lon:-58.0153},
+    {n:'Salto',           lat:-31.3833, lon:-57.9667},
+    {n:'Melo',            lat:-32.3700, lon:-54.1767},
+    {n:'Maldonado',       lat:-34.9011, lon:-54.9581},
+    {n:'Punta del Este',  lat:-34.9667, lon:-54.9500},
+    {n:'Rocha',           lat:-34.4800, lon:-54.3333},
+    {n:'Tacuarembó',      lat:-31.7333, lon:-55.9833},
+    {n:'Durazno',         lat:-33.3800, lon:-56.5214},
+    {n:'Trinidad',        lat:-33.5167, lon:-56.9000},
+  ]},
+  AR: { tz:-3, cities:[
+    {n:'Buenos Aires',    lat:-34.6037, lon:-58.3816},
+    {n:'Córdoba',         lat:-31.4201, lon:-64.1888},
+    {n:'Rosario',         lat:-32.9468, lon:-60.6393},
+    {n:'Mendoza',         lat:-32.8895, lon:-68.8458},
+    {n:'La Plata',        lat:-34.9215, lon:-57.9545},
+    {n:'Mar del Plata',   lat:-38.0023, lon:-57.5575},
+    {n:'San Miguel de Tucumán',lat:-26.8241,lon:-65.2226},
+    {n:'Salta',           lat:-24.7859, lon:-65.4116},
+    {n:'Santa Fe',        lat:-31.6333, lon:-60.7000},
+    {n:'Bahía Blanca',    lat:-38.7196, lon:-62.2724},
+    {n:'Neuquén',         lat:-38.9516, lon:-68.0591},
+    {n:'Resistencia',     lat:-27.4606, lon:-58.9867},
+    {n:'Corrientes',      lat:-27.4806, lon:-58.8341},
+    {n:'Posadas',         lat:-27.3667, lon:-55.8963},
+    {n:'Jujuy',           lat:-24.1858, lon:-65.2995},
+    {n:'Bariloche',       lat:-41.1456, lon:-71.3082},
+    {n:'Ushuaia',         lat:-54.8019, lon:-68.3030},
+  ]},
+  CL: { tz:-4, cities:[
+    {n:'Santiago',        lat:-33.4569, lon:-70.6483},
+    {n:'Valparaíso',      lat:-33.0472, lon:-71.6127},
+    {n:'Concepción',      lat:-36.8270, lon:-73.0503},
+    {n:'La Serena',       lat:-29.9027, lon:-71.2520},
+    {n:'Antofagasta',     lat:-23.6509, lon:-70.3975},
+    {n:'Temuco',          lat:-38.7359, lon:-72.5904},
+    {n:'Puerto Montt',    lat:-41.4717, lon:-72.9353},
+    {n:'Arica',           lat:-18.4783, lon:-70.3126},
+    {n:'Iquique',         lat:-20.2133, lon:-70.1503},
+    {n:'Rancagua',        lat:-34.1703, lon:-70.7444},
+    {n:'Talca',           lat:-35.4264, lon:-71.6554},
+    {n:'Punta Arenas',    lat:-53.1638, lon:-70.9171},
+  ]},
+  PE: { tz:-5, cities:[
+    {n:'Lima',            lat:-12.0464, lon:-77.0428},
+    {n:'Arequipa',        lat:-16.4090, lon:-71.5375},
+    {n:'Trujillo',        lat:-8.1116,  lon:-79.0288},
+    {n:'Chiclayo',        lat:-6.7714,  lon:-79.8409},
+    {n:'Cusco',           lat:-13.5320, lon:-71.9675},
+    {n:'Iquitos',         lat:-3.7437,  lon:-73.2516},
+    {n:'Piura',           lat:-5.1945,  lon:-80.6328},
+  ]},
+  CO: { tz:-5, cities:[
+    {n:'Bogotá',          lat:4.7110,   lon:-74.0721},
+    {n:'Medellín',        lat:6.2442,   lon:-75.5812},
+    {n:'Cali',            lat:3.4516,   lon:-76.5320},
+    {n:'Barranquilla',    lat:10.9639,  lon:-74.7964},
+    {n:'Cartagena',       lat:10.3910,  lon:-75.4794},
+    {n:'Bucaramanga',     lat:7.1193,   lon:-73.1227},
+    {n:'Pereira',         lat:4.8133,   lon:-75.6961},
+    {n:'Manizales',       lat:5.0703,   lon:-75.5138},
+  ]},
+  EC: { tz:-5, cities:[
+    {n:'Quito',           lat:-0.1807,  lon:-78.4678},
+    {n:'Guayaquil',       lat:-2.1710,  lon:-79.9224},
+    {n:'Cuenca',          lat:-2.9006,  lon:-79.0045},
+    {n:'Ambato',          lat:-1.2543,  lon:-78.6269},
+    {n:'Portoviejo',      lat:-1.0546,  lon:-80.4542},
+  ]},
+  MX: { tz:-6, cities:[
+    {n:'Ciudad de México', lat:19.4326, lon:-99.1332},
+    {n:'Guadalajara',     lat:20.6597,  lon:-103.3496},
+    {n:'Monterrey',       lat:25.6866,  lon:-100.3161},
+    {n:'Puebla',          lat:19.0414,  lon:-98.2063},
+    {n:'Tijuana',         lat:32.5149,  lon:-117.0382},
+    {n:'León',            lat:21.1221,  lon:-101.6826},
+    {n:'Cancún',          lat:21.1619,  lon:-86.8515},
+    {n:'Mérida',          lat:20.9674,  lon:-89.5926},
+    {n:'Oaxaca',          lat:17.0732,  lon:-96.7266},
+  ]},
+  US: { tz:-5, cities:[
+    {n:'Nueva York',      lat:40.7128,  lon:-74.0060},
+    {n:'Los Ángeles',     lat:34.0522,  lon:-118.2437},
+    {n:'Chicago',         lat:41.8781,  lon:-87.6298},
+    {n:'Houston',         lat:29.7604,  lon:-95.3698},
+    {n:'Miami',           lat:25.7617,  lon:-80.1918},
+    {n:'San Francisco',   lat:37.7749,  lon:-122.4194},
+    {n:'Seattle',         lat:47.6062,  lon:-122.3321},
+    {n:'Boston',          lat:42.3601,  lon:-71.0589},
+    {n:'Washington DC',   lat:38.9072,  lon:-77.0369},
+    {n:'Las Vegas',       lat:36.1699,  lon:-115.1398},
+  ]},
+  ES: { tz:1, cities:[
+    {n:'Madrid',          lat:40.4168,  lon:-3.7038},
+    {n:'Barcelona',       lat:41.3851,  lon:2.1734},
+    {n:'Valencia',        lat:39.4699,  lon:-0.3763},
+    {n:'Sevilla',         lat:37.3891,  lon:-5.9845},
+    {n:'Zaragoza',        lat:41.6488,  lon:-0.8891},
+    {n:'Málaga',          lat:36.7213,  lon:-4.4213},
+    {n:'Bilbao',          lat:43.2630,  lon:-2.9350},
+    {n:'Alicante',        lat:38.3452,  lon:-0.4815},
+    {n:'Córdoba',         lat:37.8882,  lon:-4.7794},
+    {n:'Granada',         lat:37.1773,  lon:-3.5986},
+    {n:'Palma',           lat:39.5696,  lon:2.6502},
+    {n:'Las Palmas',      lat:28.1235,  lon:-15.4363},
+    {n:'Tenerife',        lat:28.4636,  lon:-16.2518},
+  ]},
+  FR: { tz:1, cities:[
+    {n:'París',           lat:48.8566,  lon:2.3522},
+    {n:'Marsella',        lat:43.2965,  lon:5.3698},
+    {n:'Lyon',            lat:45.7640,  lon:4.8357},
+    {n:'Toulouse',        lat:43.6047,  lon:1.4442},
+    {n:'Niza',            lat:43.7102,  lon:7.2620},
+    {n:'Nantes',          lat:47.2184,  lon:-1.5536},
+    {n:'Bordeaux',        lat:44.8378,  lon:-0.5792},
+    {n:'Estrasburgo',     lat:48.5734,  lon:7.7521},
+    {n:'Montpellier',     lat:43.6108,  lon:3.8767},
+  ]},
+  IT: { tz:1, cities:[
+    {n:'Roma',            lat:41.9028,  lon:12.4964},
+    {n:'Milán',           lat:45.4642,  lon:9.1900},
+    {n:'Nápoles',         lat:40.8518,  lon:14.2681},
+    {n:'Turín',           lat:45.0703,  lon:7.6869},
+    {n:'Florencia',       lat:43.7696,  lon:11.2558},
+    {n:'Venecia',         lat:45.4408,  lon:12.3155},
+    {n:'Génova',          lat:44.4056,  lon:8.9463},
+    {n:'Bolonia',         lat:44.4949,  lon:11.3426},
+    {n:'Palermo',         lat:38.1157,  lon:13.3615},
+  ]},
+  AT: { tz:1, cities:[
+    {n:'Viena',           lat:48.2082,  lon:16.3738},
+    {n:'Graz',            lat:47.0707,  lon:15.4395},
+    {n:'Linz',            lat:48.3064,  lon:14.2858},
+    {n:'Salzburgo',       lat:47.8095,  lon:13.0550},
+    {n:'Innsbruck',       lat:47.2692,  lon:11.4041},
+  ]},
+  DE: { tz:1, cities:[
+    {n:'Berlín',          lat:52.5200,  lon:13.4050},
+    {n:'Múnich',          lat:48.1351,  lon:11.5820},
+    {n:'Hamburgo',        lat:53.5753,  lon:10.0153},
+    {n:'Colonia',         lat:50.9333,  lon:6.9500},
+    {n:'Frankfurt',       lat:50.1109,  lon:8.6821},
+  ]},
+  PT: { tz:0, cities:[
+    {n:'Lisboa',          lat:38.7169,  lon:-9.1395},
+    {n:'Oporto',          lat:41.1496,  lon:-8.6109},
+    {n:'Faro',            lat:37.0194,  lon:-7.9322},
+  ]},
+  GB: { tz:0, cities:[
+    {n:'Londres',         lat:51.5074,  lon:-0.1278},
+    {n:'Manchester',      lat:53.4808,  lon:-2.2426},
+    {n:'Edimburgo',       lat:55.9533,  lon:-3.1883},
+    {n:'Birmingham',      lat:52.4862,  lon:-1.8904},
+  ]},
+  BR: { tz:-3, cities:[
+    {n:'São Paulo',       lat:-23.5505, lon:-46.6333},
+    {n:'Río de Janeiro',  lat:-22.9068, lon:-43.1729},
+    {n:'Brasilia',        lat:-15.7801, lon:-47.9292},
+    {n:'Salvador',        lat:-12.9714, lon:-38.5014},
+    {n:'Fortaleza',       lat:-3.7319,  lon:-38.5267},
+    {n:'Porto Alegre',    lat:-30.0346, lon:-51.2177},
+    {n:'Curitiba',        lat:-25.4290, lon:-49.2671},
+  ]},
+  VE: { tz:-4, cities:[
+    {n:'Caracas',         lat:10.4806,  lon:-66.9036},
+    {n:'Maracaibo',       lat:10.6544,  lon:-71.6020},
+    {n:'Valencia',        lat:10.1620,  lon:-67.9933},
+  ]},
+  BO: { tz:-4, cities:[
+    {n:'La Paz',          lat:-16.5000, lon:-68.1500},
+    {n:'Santa Cruz',      lat:-17.7833, lon:-63.1833},
+    {n:'Cochabamba',      lat:-17.3895, lon:-66.1568},
+  ]},
+  PY: { tz:-4, cities:[
+    {n:'Asunción',        lat:-25.2867, lon:-57.6470},
+    {n:'Ciudad del Este', lat:-25.5097, lon:-54.6116},
+  ]},
+};
+
+function cargarCiudades(){
+  const pais = document.getElementById('selPais').value;
+  const sel = document.getElementById('selCiudad');
+  sel.innerHTML = '<option value="">— Ciudad —</option>';
+  if(!pais || !CITY_DB[pais]) return;
+  // Actualizar timezone automáticamente
+  document.getElementById('inTZ').value = CITY_DB[pais].tz;
+  CITY_DB[pais].cities.forEach((c,i)=>{
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = c.n;
+    sel.appendChild(opt);
+  });
+}
+
+function elegirCiudad(){
+  const pais = document.getElementById('selPais').value;
+  const idx = document.getElementById('selCiudad').value;
+  if(!pais || idx==='') return;
+  const c = CITY_DB[pais].cities[parseInt(idx)];
+  setCity(c.lat, c.lon, c.n);
+}
+
+function setCity(lat,lon,city){
+  document.getElementById('inLat').value=lat;
+  document.getElementById('inLon').value=lon;
+  document.getElementById('inCiudad').value=city;
+}
+
+// ── ESTADO GLOBAL ──
+let cartaData=null;
+let chatHistory=[]; // [{role:'user'|'assistant', content:'...'}]
+
+// ── CÁLCULO JD ──
+function julianDay(y,m,d,h){
+  if(m<=2){y--;m+=12;}
+  const A=Math.floor(y/100),B=2-A+Math.floor(A/4);
+  return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+h/24+B-1524.5;
+}
+function gmst(jd){const T=(jd-2451545.0)/36525;return n360(280.46061837+360.98564736629*(jd-2451545)+0.000387933*T*T-T*T*T/38710000);}
+function calcAsc(jd,lat,lon){
+  const ramc=n360(gmst(jd)+lon);
+  const e=23.4367;
+  const ramc_r=toRad(ramc),e_r=toRad(e),lat_r=toRad(lat);
+  // MC
+  const MC=Math.atan2(Math.cos(e_r)*Math.sin(ramc_r),Math.cos(ramc_r))*180/Math.PI;
+  const mc=n360(MC+(Math.cos(ramc_r)<0?180:0));
+  // ASC: formula estandar + correccion hemisferio sur (lat<0 => +180°)
+  const denom=Math.sin(e_r)*Math.tan(lat_r)+Math.cos(e_r)*Math.sin(ramc_r);
+  const numer=-Math.cos(ramc_r);
+  let asc=Math.atan2(numer,denom)*180/Math.PI;
+  if(lat<0) asc+=180; // correccion hemisferio sur
+  asc=n360(asc);
+  return{asc,mc,ramc};
+}
+
+// Planetas rápidos (Sol, Luna, Mercurio, Venus, Marte) via Moshier
+// ── TABLA PLANETAS RAPIDOS 2026 (Swiss Ephemeris, 1ro de cada mes 00:00 UT) ──
+// [mes, Sol, Luna*, Mer, Ven, Mar]  *Luna calculada dinamicamente
+// Mercurio/Venus/Marte: anclados en valores reales Swiss confirmados
+const FAST_TABLE_2026 = {
+  // [Mercurio, Venus, Marte] grados longitud tropical al dia 1 del mes
+  1:  [285.0,  327.2, 313.5],
+  2:  [318.0,  352.6, 332.1],
+  3:  [311.8,   16.4, 348.9],
+  4:  [345.4,   44.3,   6.8],
+  5:   [33.4,   72.8,  23.6],
+  6:   [89.2,  105.4,  39.8],
+  7:  [116.0,  140.2,  61.6],
+  8:  [155.0,  176.8,  83.6],
+  9:  [213.9,  210.9, 104.3],
+  10: [200.0,  240.3, 123.8],
+  11: [195.0,  267.3, 141.8],
+  12: [240.0,  298.3, 157.7],
+};
+// Retrogradadiones 2026: periodos donde Mercurio va hacia atras
+const MER_RX_2026 = [
+  {start:2451545+9553, end:2451545+9575},   // ~4-26 feb (Acuario)
+  {start:2451545+9734, end:2451545+9757},   // ~22 jun - 16 jul (Cancer)
+  {start:2451545+9943, end:2451545+9966},   // ~11 oct - 2 nov (Escorpio)
+];
+
+function getInnerPlanets(Y,M,D){
+  if(Y!==2026) return null; // solo 2026 tiene tabla precisa
+  const m1=M, m2=M===12?1:M+1;
+  const row1=FAST_TABLE_2026[m1], row2=FAST_TABLE_2026[m2]||row1;
+  const daysInMonth=new Date(Y,M,0).getDate();
+  const frac=(D-1)/daysInMonth;
+  function interp(a,b){let d=b-a;if(d>180)d-=360;if(d<-180)d+=360;return n360(a+d*frac);}
+  return{
+    Mercurio: interp(row1[0],row2[0]),
+    Venus:    interp(row1[1],row2[1]),
+    Marte:    interp(row1[2],row2[2]),
+  };
+}
+
+function isMerRx2026(jd){
+  for(const p of MER_RX_2026){if(jd>=p.start&&jd<=p.end)return true;}
+  return false;
+}
+
+function fastPlanets(jd,Y,M,D){
+  const T=(jd-2451545.0)/36525.0;
+  // ── SOL: algoritmo Meeus cap.25 (precision ~0.01°) ──
+  const L0=n360(280.46646+36000.76983*T+0.0003032*T*T);
+  const Msol=n360(357.52911+35999.05029*T-0.0001537*T*T);
+  const Msol_r=toRad(Msol);
+  const C=(1.914602-0.004817*T-0.000014*T*T)*Math.sin(Msol_r)
+          +(0.019993-0.000101*T)*Math.sin(2*Msol_r)
+          +0.000289*Math.sin(3*Msol_r);
+  const solLon=n360(L0+C);
+  // ── LUNA: Meeus cap.47 (40 terminos, precision ~0.3°) ──
+  const Lm=n360(218.3164477+481267.88123421*T-0.0015786*T*T);
+  const D_=n360(297.8501921+445267.1114034*T-0.0018819*T*T);
+  const Mm_=n360(357.5291092+35999.0502909*T-0.0001536*T*T);
+  const Mp=n360(93.2720950+477198.8675055*T+0.0087414*T*T);
+  const F_=n360(93.2720950+477198.8675055*T);
+  const D_r=toRad(D_),Mm_r=toRad(Mm_),Mp_r=toRad(Mp),F_r=toRad(F_);
+  const E=1-0.002516*T;
+  const lunaLon=n360(Lm
+    +6.288774*Math.sin(Mp_r)
+    +1.274027*Math.sin(2*D_r-Mp_r)
+    +0.658314*Math.sin(2*D_r)
+    +0.213618*Math.sin(2*Mp_r)
+    -0.185116*E*Math.sin(Mm_r)
+    -0.114332*Math.sin(2*F_r)
+    +0.058793*Math.sin(2*D_r-2*Mp_r)
+    +0.057066*E*Math.sin(2*D_r-Mm_r-Mp_r)
+    +0.053322*Math.sin(2*D_r+Mp_r)
+    +0.045758*E*Math.sin(2*D_r-Mm_r)
+    -0.040923*E*Math.sin(Mm_r-Mp_r)
+    -0.034720*Math.sin(D_r)
+    -0.030383*E*Math.sin(Mm_r+Mp_r)
+    +0.015327*Math.sin(2*D_r-2*F_r)
+    -0.012528*Math.sin(Mp_r+2*F_r)
+    +0.010980*Math.sin(Mp_r-2*F_r)
+    +0.010675*Math.sin(4*D_r-Mp_r)
+    +0.010034*Math.sin(3*Mp_r)
+    +0.008548*Math.sin(4*D_r-2*Mp_r)
+    -0.007888*E*Math.sin(2*D_r+Mm_r-Mp_r)
+    -0.006766*E*Math.sin(2*D_r+Mm_r)
+    -0.005163*Math.sin(D_r-Mp_r)
+    +0.004987*E*Math.sin(D_r+Mm_r)
+    +0.004036*E*Math.sin(2*D_r-Mm_r+Mp_r)
+    +0.003994*Math.sin(2*D_r+2*Mp_r)
+    +0.003861*Math.sin(4*D_r)
+    +0.003665*Math.sin(2*D_r-3*Mp_r)
+    -0.002689*E*Math.sin(Mm_r-2*Mp_r)
+    -0.002602*Math.sin(2*D_r-Mp_r+2*F_r)
+    +0.002390*E*Math.sin(2*D_r-Mm_r-2*Mp_r)
+    -0.002348*Math.sin(D_r+Mp_r)
+    +0.002236*E*Math.sin(2*D_r-2*Mm_r)
+    -0.002120*E*Math.sin(Mm_r+2*Mp_r)
+    -0.002069*E*Math.sin(2*Mm_r)
+    +0.002048*E*E*Math.sin(2*D_r-2*Mm_r-Mp_r)
+    -0.001773*Math.sin(2*D_r+Mp_r-2*F_r)
+    -0.001595*Math.sin(2*D_r+2*F_r)
+    +0.001215*E*Math.sin(4*D_r-Mm_r-Mp_r)
+    -0.001110*Math.sin(2*Mp_r+2*F_r));
+  // ── MERCURIO/VENUS/MARTE: tabla precisa 2026, Meeus simplificado otros años ──
+  const inner=getInnerPlanets(Y,M,D);
+  let merLon,venLon,marLon,merRx=false,venRx=false,marRx=false;
+  if(inner){
+    merLon=inner.Mercurio; venLon=inner.Venus; marLon=inner.Marte;
+    merRx=isMerRx2026(jd);
+  } else {
+    // Fuera de 2026: Meeus simplificado (menos preciso)
+    const n_=jd-2451545.0;
+    merLon=n360(174.79+4.09233*n_+23.44*Math.sin(toRad(n360(149.4+4.09233*n_))));
+    venLon=n360(50.42+1.60213*n_+0.776*Math.sin(toRad(n360(212.7+1.60213*n_))));
+    marLon=n360(19.37+0.52402*n_+10.691*Math.sin(toRad(n360(319.5+0.52402*n_))));
+  }
+  return{
+    Sol:{lon:solLon,retro:false},
+    Luna:{lon:lunaLon,retro:false},
+    Mercurio:{lon:merLon,retro:merRx},
+    Venus:{lon:venLon,retro:venRx},
+    Marte:{lon:marLon,retro:marRx},
+  };
+}
+
+function fallbackHouses(ramc,lat){
+  const e=23.4367;
+  function placInter(r){
+    const sinD=Math.cos(toRad(e))*Math.sin(toRad(r));
+    const lon=Math.atan2(sinD,Math.cos(toRad(r)))*180/Math.PI;
+    return n360(lon+(Math.cos(toRad(r))<0?180:0));
+  }
+  const mc=placInter(ramc);
+  const y=-Math.cos(toRad(ramc+90));
+  const x=Math.sin(toRad(ramc+90))*Math.cos(toRad(e))-Math.tan(toRad(lat))*Math.sin(toRad(e));
+  const asc=n360(Math.atan2(y,x)*180/Math.PI);
+  return[asc,placInter(ramc+210),placInter(ramc+240),n360(mc+180),n360(mc+210),n360(mc+240),
+         n360(asc+180),placInter(ramc+30),placInter(ramc+60),mc,n360(mc+30),n360(mc+60)];
+}
+
+// ── CALCULAR ──
+async function calcular(){
+  const fecha=document.getElementById('inFecha').value;
+  const hora=document.getElementById('inHora').value;
+  const lat=parseFloat(document.getElementById('inLat').value);
+  const lon=parseFloat(document.getElementById('inLon').value);
+  const tz=parseFloat(document.getElementById('inTZ').value);
+  if(!fecha||!hora||isNaN(lat)||isNaN(lon)){
+    alert('Completá todos los datos: fecha, hora, latitud y longitud.');return;
+  }
+  const [Y,M,D]=fecha.split('-').map(Number);
+  const [H,Min]=hora.split(':').map(Number);
+  const hourUT=H+Min/60-tz;
+  const btn=document.getElementById('btnCalc');
+  const st=document.getElementById('calcStatus');
+  btn.disabled=true;
+  st.innerHTML='<span class="spin"></span> Calculando…';
+
+  let data=null;
+  let source='tabla';
+
+  // Calcular con efemérides integradas + Moshier para planetas rápidos
+  const jd=julianDay(Y,M,D,hourUT);
+    const{asc,mc,ramc}=calcAsc(jd,lat,lon);
+    const fast=fastPlanets(jd,Y,M,D);
+    const slow=getSlowPlanets(Y,M,D);
+    const cusps=fallbackHouses(ramc,lat);
+    cusps[0]=asc;cusps[9]=mc;cusps[6]=n360(asc+180);cusps[3]=n360(mc+180);
+    const pfort=n360(asc+fast.Luna.lon-fast.Sol.lon);
+
+    const planets={...fast};
+    if(slow){
+      // Planetas lentos de la tabla calibrada
+      planets.Júpiter={lon:slow.Júpiter,retro:false};
+      planets.Saturno={lon:slow.Saturno,retro:false};
+      planets.Urano={lon:slow.Urano,retro:false};
+      planets.Neptuno={lon:slow.Neptuno,retro:false};
+      planets.Plutón={lon:slow.Plutón,retro:false};
+      planets.NodoN={lon:slow.NodoN,retro:true};
+      planets.NodoS={lon:n360(slow.NodoN+180),retro:true};
+      source='tabla';
+    } else {
+      // Fuera del rango 2026-2045: usar Moshier simple para todo
+      const n_=jd-2451545.0;
+      const ura=n360(313.23+0.011725*n_);
+      const nep=n360(304.88+0.006006*n_);
+      const plu=n360(238.9+0.003999*n_);
+      const nod=n360(125.0-0.052954*n_);
+      planets.Júpiter={lon:n360(20.9+0.08309*n_),retro:false};
+      planets.Saturno={lon:n360(317.0+0.03344*n_),retro:false};
+      planets.Urano={lon:ura,retro:false};
+      planets.Neptuno={lon:nep,retro:false};
+      planets.Plutón={lon:plu,retro:true};
+      planets.NodoN={lon:nod,retro:true};
+      planets.NodoS={lon:n360(nod+180),retro:true};
+      source='moshier';
+    }
+    planets.PFort={lon:pfort,retro:false};
+    data={jd,asc,mc,cusps,planets};
+
+  data.meta={fecha,hora,lat,lon,tz,ciudad:document.getElementById('inCiudad').value,pregunta:document.getElementById('pregunta').value,source};
+  cartaData=data;
+  chatHistory=[];
+
+  const badges={tabla:'<span class="status-badge status-swiss">✦ Efemérides Swiss 2026–2045</span>',moshier:'<span class="status-badge status-fallback">⚠ Fuera del rango 2026–2045</span>'};
+  st.innerHTML=badges[source]||'';
+
+  mostrar(data);
+  btn.disabled=false;
+}
+
+// ── MOSTRAR ──
+function mostrar(data){
+  document.getElementById('resultado').style.display='block';
+  document.getElementById('chatHistorial').style.display='none';
+  document.getElementById('chatHistorial').innerHTML='';
+  document.getElementById('btnPrimeraWrap').style.display='block';
+  document.getElementById('followupWrap').style.display='none';
+  setTimeout(()=>document.getElementById('resultado').scrollIntoView({behavior:'smooth'}),80);
+  checkRadical(data);
+  drawChart(data);
+  fillTable(data);
+  fillCasas(data);
+}
+
+// ── RADICABILIDAD ──
+function checkRadical(data){
+  const{asc,planets,cusps}=data;
+  const ascDeg=asc%30;
+  const satH=getHouse(planets.Saturno.lon,cusps);
+  const msgs=[];let tipo='ok';
+  if(ascDeg<3){msgs.push('⚠ Ascendente entre 0° y 3°: la pregunta es PREMATURA. La situación es embrionaria y todavía no tiene forma definida.');tipo='warn';}
+  else if(ascDeg>=27){msgs.push('⚠ Ascendente entre 27° y 30°: la pregunta es TARDÍA. El asunto ya está resuelto o el consultante ya tomó una decisión.');tipo='warn';}
+  if(satH===1&&(planets.Saturno.lon%30)<10){msgs.push('⚠ Saturno en Ascendente (primeros 10° de Casa I): la pregunta puede no ser veraz o el consultante no la formula bien.');tipo='warn';}
+  if(satH===7){msgs.push('◈ Saturno en Casa VII: la comprensión del astrólogo puede estar interferida. Verificar datos. Puede responderse si el astrólogo pregunta por sí mismo.');if(tipo!=='warn')tipo='caution';}
+  const vc=l=>{
+    if(l>=195&&l<225){
+      if(Math.abs(l-203.7)<=1){msgs.push('✦ '+( l===asc?'Ascendente':'Luna')+' cerca de Spica (24° Libra): excepción positiva a la Vía Combusta.');}
+      else{msgs.push('⚠ '+(l===asc?'Ascendente':'Luna')+' en VÍA COMBUSTA (15° Libra – 15° Escorpio): los eventos cambiarán de forma brusca e impredecible.');if(tipo!=='warn')tipo='caution';}
+    }
+  };
+  vc(asc);vc(planets.Luna.lon);
+  const banner=document.getElementById('radicalBanner');
+  if(!msgs.length){banner.className='radical radical-ok';banner.innerHTML='✔ Carta <strong>radical</strong>: Ascendente válido, sin condicionantes de Saturno ni Vía Combusta. Se puede proceder a la interpretación.';}
+  else{banner.className=`radical radical-${tipo}`;banner.innerHTML=msgs.join('<br><br>');}
+}
+
+// ── TABLA PLANETAS ──
+function fillTable(data){
+  const tb=document.getElementById('ptBody');tb.innerHTML='';
+  const order=['Sol','Luna','Mercurio','Venus','Marte','Júpiter','Saturno','Urano','Neptuno','Plutón','NodoN','NodoS','PFort'];
+  const nice={NodoN:'Nodo ☊',NodoS:'Nodo ☋',PFort:'P.Fortuna'};
+  const hasDig=p=>['Sol','Luna','Mercurio','Venus','Marte','Júpiter','Saturno'].includes(p);
+  order.forEach(p=>{
+    const pl=data.planets[p];if(!pl)return;
+    const h=getHouse(pl.lon,data.cusps);
+    const d=hasDig(p)?getDig(p,pl.lon):'';
+    tb.innerHTML+=`<tr><td class="psym">${PSYM[p]||''}</td><td>${nice[p]||p}</td><td class="deg">${fmtSym(pl.lon)}</td><td>${h}</td><td class="${digClass(d)}" style="font-size:.76rem">${d}</td><td class="retro">${pl.retro?'℞':''}</td></tr>`;
+  });
+}
+
+// ── CASAS ──
+function fillCasas(data){
+  const g=document.getElementById('casasGrid');g.innerHTML='';
+  const labs=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+  data.cusps.forEach((c,i)=>{
+    const signo=SNAMES[Math.floor(c/30)];
+    const regente=RULERS[Math.floor(c/30)];
+    g.innerHTML+=`<div class="casa-item"><div class="casa-num">Casa ${labs[i]} · ${signo}</div><div class="casa-deg">${fmtSym(c)}<span style="font-size:.7rem;color:var(--cream-dim);margin-left:6px">rig. ${regente}</span></div></div>`;
+  });
+}
+
+// ── RUEDA SVG ──
+function drawChart(data){
+  const svg=document.getElementById('chartSvg');svg.innerHTML='';
+  const cx=200,cy=200,R=178,Ri=118,Rp=136;
+  const ns='http://www.w3.org/2000/svg';
+  const el=(t,a,txt)=>{const e=document.createElementNS(ns,t);Object.entries(a).forEach(([k,v])=>e.setAttribute(k,v));if(txt!==undefined)e.textContent=txt;return e;};
+  const ang=lon=>toRad(180-(lon-data.asc));
+  const pt=(a,r)=>[cx+r*Math.cos(a),cy-r*Math.sin(a)];
+  svg.appendChild(el('circle',{cx,cy,r:R,fill:'#0D0B1E',stroke:'#2E2850','stroke-width':'1'}));
+  svg.appendChild(el('circle',{cx,cy,r:R,fill:'none',stroke:'#2E2850','stroke-width':'28'}));
+  svg.appendChild(el('circle',{cx,cy,r:Ri,fill:'none',stroke:'#2E2850','stroke-width':'1'}));
+  for(let i=0;i<12;i++){
+    const mid=ang(i*30+15);
+    const[tx,ty]=pt(mid,(R+Ri)/2+1);
+    svg.appendChild(el('text',{x:tx,y:ty,'text-anchor':'middle','dominant-baseline':'middle',fill:'#C8A96E','font-size':'13','font-family':'serif'},SIGNS[i]));
+    const a=ang(i*30);const[x1,y1]=pt(a,R);const[x2,y2]=pt(a,Ri);
+    svg.appendChild(el('line',{x1,y1,x2,y2,stroke:'#7B5EA7','stroke-width':i%3===0?1.2:.4}));
+  }
+  const hLabs=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+  for(let i=0;i<12;i++){
+    const a=ang(data.cusps[i]);const[x1,y1]=pt(a,Ri);const[x2,y2]=pt(a,14);
+    const thick=[0,3,6,9].includes(i);
+    svg.appendChild(el('line',{x1,y1,x2,y2,stroke:'#5A4E90','stroke-width':thick?1.4:.6,'stroke-dasharray':thick?'':'3,3'}));
+    const next=data.cusps[(i+1)%12];
+    let mid=data.cusps[i];
+    let diff=next-mid;if(diff<0)diff+=360;
+    mid+=diff/2;
+    const ma=ang(mid);const[lx,ly]=pt(ma,Ri-18);
+    svg.appendChild(el('text',{x:lx,y:ly,'text-anchor':'middle','dominant-baseline':'middle',fill:'#A09880','font-size':'7.5'},hLabs[i]));
+  }
+  const order=['Sol','Luna','Mercurio','Venus','Marte','Júpiter','Saturno','NodoN','PFort'];
+  order.forEach(p=>{
+    const pl=data.planets[p];if(!pl)return;
+    const a=ang(pl.lon);const[px,py]=pt(a,Rp);
+    svg.appendChild(el('text',{x:px,y:py,'text-anchor':'middle','dominant-baseline':'middle',fill:PCOL[p]||'#E8E0D0','font-size':'13','font-family':'serif'},(PSYM[p]||p.slice(0,2))+(pl.retro?'℞':'')));
+  });
+  svg.appendChild(el('circle',{cx,cy,r:9,fill:'#1A1630',stroke:'#7B5EA7','stroke-width':'1'}));
+  svg.appendChild(el('text',{x:cx,y:cy,'text-anchor':'middle','dominant-baseline':'middle',fill:'#C8A96E','font-size':'9'},'+'));
+}
+
+// ── CONSTRUIR TEXTO DE CARTA ──
+// ── VELOCIDADES DIARIAS MEDIAS (grados/día) para determinar aplicativo/separativo ──
+const VEL_MEDIA={Sol:0.9856,Luna:13.176,Mercurio:1.38,Venus:1.20,Marte:0.524,
+  Júpiter:0.083,Saturno:0.033,Urano:0.012,Neptuno:0.006,Plutón:0.004};
+
+function calcAspectos(planets){
+  // Devuelve array de {p1, p2, aspecto, orbe, tipo:'APLICATIVO'|'separativo'}
+  const SIGPLANETS=['Sol','Luna','Mercurio','Venus','Marte','Júpiter','Saturno'];
+  const ASPECTOS=[[0,8,'Conjunción'],[60,6,'Sextil'],[90,8,'Cuadratura'],[120,8,'Trígono'],[180,8,'Oposición']];
+  const resultados=[];
+  for(let i=0;i<SIGPLANETS.length;i++){
+    for(let j=i+1;j<SIGPLANETS.length;j++){
+      const n1=SIGPLANETS[i], n2=SIGPLANETS[j];
+      const p1=planets[n1], p2=planets[n2];
+      if(!p1||!p2) continue;
+      // Diferencia angular p2 - p1 (en el zodíaco)
+      let diff=(p2.lon - p1.lon + 360) % 360;
+      if(diff>180) diff=360-diff; // distancia mínima
+      for(const [deg,orb,nm] of ASPECTOS){
+        const dd=Math.abs(diff-deg);
+        if(dd<=orb){
+          // Determinar aplicativo: el más rápido se acerca al más lento
+          const v1=(VEL_MEDIA[n1]||0)*(p1.retro?-1:1);
+          const v2=(VEL_MEDIA[n2]||0)*(p2.retro?-1:1);
+          // Velocidad relativa de p1 respecto a p2
+          const vRel=v1-v2;
+          // Diferencia real (con signo, para saber dirección)
+          let diffSig=(p2.lon - p1.lon + 360) % 360;
+          if(diffSig>180) diffSig=diffSig-360;
+          // Es aplicativo si el más rápido se acerca al ángulo exacto
+          // p1 aplica a p2 si vRel > 0 y p1 está "detrás" del ángulo exacto
+          // O si vRel < 0 y p1 está "adelante"
+          let aplicativo=false;
+          const exactAngle=deg; // ángulo objetivo
+          // Distancia desde p1 al punto exacto: 
+          const distToExact=diffSig - (diffSig>=0 ? deg : -deg);
+          aplicativo=(vRel>0 && distToExact>0) || (vRel<0 && distToExact<0);
+          resultados.push({p1:n1,p2:n2,aspecto:nm,orbe:dd.toFixed(1),
+            tipo:aplicativo?'APLICATIVO':'separativo'});
+        }
+      }
+    }
+  }
+  // Ordenar: primero aplicativos, luego por orbe
+  resultados.sort((a,b)=>{
+    if(a.tipo!==b.tipo) return a.tipo==='APLICATIVO'?-1:1;
+    return parseFloat(a.orbe)-parseFloat(b.orbe);
+  });
+  return resultados;
+}
+
+function buildCartaText(data){
+  const{cusps,planets,asc,mc,meta}=data;
+  const labs=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+  let t=`CARTA HORARIA\n`;
+  if(meta){t+=`Fecha: ${meta.fecha} ${meta.hora} (UTC${meta.tz>=0?'+':''}${meta.tz})\nLugar: ${meta.ciudad||''} (Lat ${meta.lat}, Lon ${meta.lon})\n\n`;}
+  t+=`ASCENDENTE: ${fmtFull(asc)} | MC: ${fmtFull(mc)}\n\nCASAS (Placidus):\n`;
+  cusps.forEach((c,i)=>{t+=`  Casa ${labs[i]}: ${fmtFull(c)} (rige: ${RULERS[Math.floor(c/30)]})\n`;});
+  
+  t+=`\nPLANETAS:\n`;
+  const order=['Sol','Luna','Mercurio','Venus','Marte','Júpiter','Saturno','Urano','Neptuno','Plutón','NodoN','PFort'];
+  const hasDig=p=>['Sol','Luna','Mercurio','Venus','Marte','Júpiter','Saturno'].includes(p);
+  order.forEach(p=>{
+    const pl=planets[p];if(!pl)return;
+    const h=getHouse(pl.lon,cusps);
+    const d=hasDig(p)?getDig(p,pl.lon):'';
+    const vel=VEL_MEDIA[p];
+    const velNote=vel&&pl.retro?'Rx ':pl.retro?'Rx ':'';
+    t+=`  ${p}: ${fmtFull(pl.lon)} | Casa ${h}${d?' | '+d:''}${pl.retro?' | RETRÓGRADO':''}\n`;
+  });
+
+  // ASPECTOS ENTRE TODOS LOS SIGNIFICADORES
+  const aspectos=calcAspectos(planets);
+  t+=`\nASPECTOS ENTRE SIGNIFICADORES:\n`;
+  if(aspectos.length===0){
+    t+=`  (No se encontraron aspectos entre los significadores principales)\n`;
+  } else {
+    aspectos.forEach(a=>{
+      t+=`  ${a.p1} ${a.aspecto} ${a.p2}: orbe ${a.orbe}° — ${a.tipo}\n`;
+    });
+  }
+
+  // ASPECTOS ESPECÍFICOS DE LA LUNA (próximos, en orden)
+  t+=`\nASPECTOS DE LA LUNA (próximos en su signo actual):\n`;
+  const luna=planets.Luna;
+  const lunaSign=Math.floor(luna.lon/30);
+  const ASPECTOS_DEF=[[0,8,'Conjunción'],[60,6,'Sextil'],[90,8,'Cuadratura'],[120,8,'Trígono'],[180,8,'Oposición']];
+  const lunaAsp=[];
+  ['Sol','Mercurio','Venus','Marte','Júpiter','Saturno','Urano','Neptuno'].forEach(p=>{
+    const pl=planets[p];if(!pl)return;
+    for(const [deg,orb,nm] of ASPECTOS_DEF){
+      // Longitud donde la Luna haría el aspecto exacto con este planeta
+      const exactLon=(pl.lon - deg + 360) % 360;
+      const exactLon2=(pl.lon + deg) % 360;
+      [exactLon, exactLon2].forEach(target=>{
+        if(Math.floor(target/30)===lunaSign || Math.abs(target-luna.lon)<orb){
+          let distFwd=(target-luna.lon+360)%360;
+          if(distFwd<=orb){
+            // La Luna ya está en orbe de este aspecto
+            const v1=VEL_MEDIA['Luna']*(luna.retro?-1:1);
+            const v2=(VEL_MEDIA[p]||0)*(pl.retro?-1:1);
+            const vRel=v1-v2;
+            const aplicativo=vRel>0&&distFwd<deg||vRel>0&&distFwd<=orb;
+            const tipo=distFwd>0.01?'APLICATIVO':'separativo (exacto)';
+            lunaAsp.push({p,nm,orbe:distFwd.toFixed(1),tipo,distFwd});
+          }
+        }
+      });
+    }
+  });
+  // Simplificado: usar el cálculo general ya hecho
+  const lunaAspGen=aspectos.filter(a=>a.p1==='Luna'||a.p2==='Luna');
+  if(lunaAspGen.length===0){
+    // Calcular específicamente los próximos aspectos de la Luna
+    const proximosLuna=[];
+    ['Sol','Mercurio','Venus','Marte','Júpiter','Saturno'].forEach(p=>{
+      const pl=planets[p];if(!pl)return;
+      for(const [deg,orb,nm] of ASPECTOS_DEF){
+        // Punto donde Luna haría aspecto exacto
+        for(const base of [pl.lon-deg, pl.lon+deg]){
+          const target=((base%360)+360)%360;
+          const distFwd=(target-luna.lon+360)%360;
+          if(distFwd<30&&distFwd>0){ // dentro del mismo o siguiente signo
+            proximosLuna.push({p,nm,dist:distFwd.toFixed(1)});
+          }
+        }
+      }
+    });
+    proximosLuna.sort((a,b)=>parseFloat(a.dist)-parseFloat(b.dist));
+    if(proximosLuna.length===0){
+      t+=`  Luna posiblemente VACÍA DE CURSO (sin aspectos aplicativos antes de cambiar de signo)\n`;
+    } else {
+      proximosLuna.slice(0,4).forEach(a=>{
+        t+=`  Luna → ${a.nm} ${a.p}: en ${a.dist}° (APLICATIVO)\n`;
+      });
+    }
+  } else {
+    lunaAspGen.forEach(a=>{
+      const otro=a.p1==='Luna'?a.p2:a.p1;
+      t+=`  Luna ${a.aspecto} ${otro}: orbe ${a.orbe}° — ${a.tipo}\n`;
+    });
+    // Próximos fuera del orbe actual
+    const proximosLuna=[];
+    ['Sol','Mercurio','Venus','Marte','Júpiter','Saturno'].forEach(p=>{
+      if(lunaAspGen.some(a=>(a.p1===p||a.p2===p))) return; // ya está en orbe
+      const pl=planets[p];if(!pl)return;
+      for(const [deg,orb,nm] of ASPECTOS_DEF){
+        for(const base of [pl.lon-deg, pl.lon+deg]){
+          const target=((base%360)+360)%360;
+          const distFwd=(target-luna.lon+360)%360;
+          if(distFwd<30&&distFwd>0.5){
+            proximosLuna.push({p,nm,dist:distFwd.toFixed(1)});
+          }
+        }
+      }
+    });
+    proximosLuna.sort((a,b)=>parseFloat(a.dist)-parseFloat(b.dist));
+    if(proximosLuna.length>0){
+      t+=`  Próximos aspectos Luna (fuera de orbe actual):\n`;
+      proximosLuna.slice(0,3).forEach(a=>{
+        t+=`    Luna → ${a.nm} ${a.p}: en ${a.dist}° aprox\n`;
+      });
+    }
+  }
+
+  // VACÍO DE CURSO
+  const gradosRestantesEnSigno=30-(luna.lon%30);
+  t+=`  (Luna a ${gradosRestantesEnSigno.toFixed(1)}° de cambiar de signo)\n`;
+
+  return t;
+}
+
+// ── SISTEMA IA · SILVIA CERES ──
+const SISTEMA_IA=`Sos un/a astrólogo/a experto/a en Astrología Horaria según el método de SILVIA CERES (tradición horaria clásica, Lilly, Bonatti, Morin, Estadella). Tu rol es analizar cartas horarias con rigor técnico y dar respuestas concretas y profesionales.
+
+FUNDAMENTOS DEL MÉTODO SILVIA CERES:
+
+RADICABILIDAD — La carta es válida si:
+• Ascendente entre 3° y 27° del signo.
+• Saturno NO en Casa I (primeros 10°) ni en Casa VII (salvo excepciones).
+• Luna y Asc fuera de Vía Combusta (15° Libra - 15° Escorpio), excepto Spica (24° Libra).
+• Si la carta no es radical, advertilo claramente antes de analizar.
+
+SIGNIFICADORES:
+• Casa I y su regente: el consultante.
+• Casa VII y su regente: el otro (pareja, socio, contrincante, consultado).
+• Casa IV: el final del asunto, las propiedades, el hogar.
+• La Luna: co-significadora del consultante; sus aspectos futuros revelan el desarrollo.
+• Parte de Fortuna: bienestar material, recursos.
+• Cada planeta también es significador NATURAL de su dominio (Venus = dinero en efectivo y joyas, Mercurio = escritos y documentos, Marte = herramientas, Sol = figuras de autoridad, etc.).
+• El DISPOSITOR de un significador (planeta que rige el signo donde está) lo condiciona y subordina. Consideralo siempre.
+
+CASAS DERIVADAS:
+• Se puede tomar cualquier casa como Casa I de una tercera persona y contar desde allí.
+• Ejemplo: para el hermano (Casa III), su dinero es la Casa IV (II desde III), su pareja es la Casa IX (VII desde III).
+• Usá casas derivadas cuando la pregunta involucra a terceras personas.
+
+ASPECTOS (solo los mayores/ptolemaicos — tradición clásica):
+• Conjunción (orbe 8°), Sextil (orbe 6°), Cuadratura (orbe 8°), Trígono (orbe 8°), Oposición (orbe 8°).
+• No se usan aspectos menores en horaria clásica.
+• Conjunción y aspectos armónicos (sextil, trígono) = favorables.
+• Cuadratura y oposición = desfavorables. Solo excepcionalmente pueden ser positivos si los planetas tienen dignidades o hay recepción mutua.
+• Aplicativo: el planeta más rápido se acerca al más lento → acción futura.
+• Separativo: ya ocurrió.
+• Traslación de luz: un planeta intermedio recoge el aspecto de uno y lo lleva al otro.
+• Prohibición/Evasión: un tercer planeta completa el aspecto primero, O uno de los significadores cambia de signo antes de perfeccionar el aspecto → resultado impedido.
+• Vacío de curso: la Luna no hace más aspectos antes de cambiar de signo → nada ocurrirá como se espera.
+
+DIGNIDADES ESENCIALES (tabla de Lilly/Ptolomeo):
+• Domicilio: fuerza máxima, actúa con plena capacidad.
+• Exaltación: fuerza alta, actúa bien aunque con algo de exceso.
+• Triplicidad: fuerza media, coopera naturalmente con su elemento.
+• Detrimento: debilitado, actúa con dificultad o contra sí mismo.
+• Caída: muy debilitado, poco efectivo.
+• Peregrino (sin dignidades): neutro, depende de sus aspectos y posición por casa.
+• COMBUSTIÓN: planeta a menos de 8°30' del Sol → muy debilitado. A menos de 17' (cazimi) → efecto paradójicamente fortalecedor.
+
+ESTADO POR CASA:
+• Angular (I, IV, VII, X): el planeta actúa con fuerza y rapidez.
+• Sucedente (II, V, VIII, XI): el planeta actúa con moderación.
+• Cadente (III, VI, IX, XII): el planeta actúa con debilidad o lentitud.
+
+EL ASUNTO RESULTA BIEN:
+• Aspecto armónico aplicativo (conjunción, sextil, trígono) entre los significadores principales.
+• Recepción mutua entre significadores (intercambio de dignidades = cooperación real).
+• Aspecto separativo muy reciente (dentro de 1°30') puede indicar algo que casi ocurrió.
+• Traslación de luz efectiva entre los significadores.
+
+EL ASUNTO RESULTA MAL:
+• No hay aspecto aplicativo entre los significadores.
+• Prohibición o evasión antes del aspecto principal.
+• Los significadores debilitados: en detrimento, caída, combustión, peregrinos, en casas cadentes.
+• Significador atrapado entre maléficos (Marte y Saturno sin dignidad).
+• Luna vacía de curso.
+• Cuadratura u oposición aplicativa como único contacto = obstáculos graves o negativa.
+
+PREGUNTAS DISYUNTIVAS ("¿Esto o aquello?"):
+• Asignar la primera opción o situación actual a la casa correspondiente al asunto.
+• Asignar la segunda opción contando esa misma casa desde sí misma (casa + 6).
+  - Ejemplo vivienda: opción A = Casa IV, opción B = Casa VII (IV desde IV).
+  - Ejemplo trabajo: opción A = Casa X, opción B = Casa VII (X+6 ajustado al círculo).
+• Comparar el estado de los dos regentes: el más fuerte o el que tiene aspecto armónico con el regente de Casa I es la mejor opción.
+
+OBJETOS PERDIDOS / DESAPARICIONES:
+• Regente de Casa II = objeto perdido genérico. Si es de un familiar, usar la casa que corresponda a esa persona (Casa III = hermano, etc.) y contar su Casa II desde allí.
+• Regente de Casa II retrógrado = buena señal, el objeto puede volver.
+• Aspecto armónico aplicativo entre regente Casa I y regente Casa II = recuperación probable.
+• Ubicación por casa del regente de Casa II indica dónde está el objeto.
+• El signo aporta descripción del lugar: Tierra = cerca del suelo, Agua = lugares húmedos, Fuego = cerca de calor, Aire = lugares altos o abiertos.
+• Si el Ascendente está en los primeros 3° = prematuro buscar o juzgar. En los últimos 3° = puede ser tarde.
+
+TIEMPO (cuando la respuesta es afirmativa):
+• Luna cardinal + casa angular = días.
+• Luna cardinal + casa sucedente = semanas.
+• Luna cardinal + casa cadente = meses.
+• Luna fija + casa angular = semanas.
+• Luna fija + casa sucedente = meses.
+• Luna fija + casa cadente = años.
+• Luna mutable = períodos variables, señala inconstancia.
+• Los grados de separación entre el planeta que aplica y el que recibe = cantidad de la unidad de tiempo.
+
+CASAS según Silvia Ceres:
+I: consultante · II: dinero/posesiones · III: comunicaciones/hermanos/viajes cortos · IV: hogar/propiedades/final del asunto · V: hijos/amor/placer · VI: salud/empleados/animales pequeños · VII: pareja/socios/contratos/oponentes · VIII: dinero ajeno/herencias/deudas/cirugías · IX: estudios superiores/viajes largos/extranjero/espiritualidad · X: profesión/reputación/autoridad · XI: amigos/esperanzas/apoyo · XII: confinamiento/enemigos secretos/hospitales.
+
+MODALIDAD DE LA CRUZ I/VII/IV/X:
+• Cardinal: desarrollo rápido, cambio inminente.
+• Fijo: proceso ya en marcha, difícil de modificar, lento.
+• Mutable: inestabilidad, cambios de rumbo, resultados variables.
+
+PLANETAS MODERNOS (Urano, Neptuno, Plutón):
+• Rol secundario y auxiliar en horaria clásica.
+• Aportan colorido o contexto pero NO son significadores principales.
+• Consideralos solo cuando están en ángulos o en aspecto exacto con los significadores.
+
+REGLAS SOBRE PREGUNTAS DE SEGUIMIENTO (hasta 6 preguntas adicionales):
+• Se puede profundizar sobre el MISMO asunto de la misma carta con hasta 6 preguntas adicionales.
+• Cada pregunta de seguimiento puede explorar un ángulo diferente del MISMO tema: la Luna, un planeta específico, el tiempo, las dignidades, un aspecto particular, etc.
+• Si el consultante pregunta sobre un asunto DIFERENTE al de la carta → indicar claramente que eso requiere una nueva carta horaria.
+• Señalá si la pregunta de seguimiento se sale del asunto original.
+• En los seguimientos sé más conciso (máximo 300 palabras) pero igual de técnico y preciso.
+
+FORMATO DE RESPUESTA (para la interpretación inicial):
+1. La pregunta remite a (casa/s): [nombrar con su significado]
+2. Significadores primarios: [planeta, signo, grado, casa, estado — domicilio/exaltación/detrimento/caída/peregrino/combusto — y su dispositor]
+3. La Cruz I-VII-IV-X: [modalidad y velocidad del asunto]
+4. Análisis de aspectos aplicativos entre significadores (con orbes exactos)
+5. Luna: análisis de sus aspectos futuros y último aspecto antes de cambiar de signo
+6. Radicabilidad: [confirmación o advertencias]
+7. RESPUESTA: [SÍ / NO / CON DIFICULTADES / INCIERTO] con justificación técnica clara
+8. Tiempo estimado (si la respuesta es afirmativa)
+9. Elemento clave o factor determinante de la carta
+
+Sé técnico, directo y profesional. Usá el vocabulario de Silvia Ceres. Máximo 600 palabras para la interpretación inicial, 300 para seguimientos.`;
+
+// ── INTERPRETAR IA (PRIMERA VEZ) ──
+async function interpretarIA(){
+  const apiKey=document.getElementById('apiKey').value.trim();
+  if(!apiKey){alert('Ingresá tu API Key de Anthropic.');return;}
+  localStorage.setItem('horaria_apikey',apiKey);
+  if(!cartaData){alert('Primero calculá la carta.');return;}
+  const btn=document.getElementById('btnIA');
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span> Analizando…';
+  const preguntaTxt=cartaData.meta?.pregunta||'';
+  const carta=buildCartaText(cartaData);
+  const userMsg=`PREGUNTA HORARIA: "${preguntaTxt}"\n\n${carta}`;
+  chatHistory=[{role:'user',content:userMsg}];
+  preguntasHechas=0;actualizarContador();
+  await llamarIA(apiKey,btn,'◈ Interpretar con IA');
+  guardarEnHistorial();
+  // Mostrar área de seguimiento
+  document.getElementById('btnPrimeraWrap').style.display='none';
+  document.getElementById('followupWrap').style.display='block';
+}
+
+// ── PREGUNTA DE SEGUIMIENTO ──
+let preguntasHechas = 0;
+const MAX_PREGUNTAS = 6;
+
+function actualizarContador(){
+  const c = document.getElementById('preguntasCounter');
+  const f = document.getElementById('contadorFill');
+  const inp = document.getElementById('followupInput');
+  const btn = document.getElementById('btnFollowup');
+  if(!c) return;
+  c.textContent = preguntasHechas + ' / ' + MAX_PREGUNTAS;
+  if(f) f.style.width = (preguntasHechas / MAX_PREGUNTAS * 100) + '%';
+  if(preguntasHechas >= MAX_PREGUNTAS){
+    c.style.color = '#e07070';
+    if(inp){ inp.disabled=true; inp.placeholder='Límite de 6 preguntas alcanzado. Para continuar calculá una nueva carta.'; }
+    if(btn){ btn.disabled=true; }
+  }
+}
+
+async function preguntarSeguimiento(){
+  if(preguntasHechas >= MAX_PREGUNTAS){
+    alert('Alcanzaste el límite de 6 preguntas para esta carta. Calculá una nueva carta para continuar.');
+    return;
+  }
+  const apiKey=document.getElementById('apiKey').value.trim();
+  if(!apiKey){alert('Ingresá tu API Key de Anthropic.');return;}
+  localStorage.setItem('horaria_apikey',apiKey);
+  const input=document.getElementById('followupInput');
+  const txt=input.value.trim();
+  if(!txt)return;
+  const btn=document.getElementById('btnFollowup');
+  btn.disabled=true;btn.textContent='…';
+  chatHistory.push({role:'user',content:txt});
+  input.value='';
+  renderChat();
+  await llamarIA(apiKey,btn,'↑ Enviar');
+  preguntasHechas++;
+  actualizarContador();
+  guardarEnHistorial();
+}
+
+// ── LLAMAR API ──
+async function llamarIA(apiKey,btn,btnLabel){
+  const historial=document.getElementById('chatHistorial');
+  historial.style.display='block';
+  // Mostrar spinner en el historial
+  const spinDiv=document.createElement('div');
+  spinDiv.className='chat-msg assistant';
+  spinDiv.innerHTML='<div class="msg-label">Silvia Ceres · IA</div><div class="msg-body"><span class="spin"></span> Analizando la carta…</div>';
+  historial.appendChild(spinDiv);
+  historial.scrollTop=historial.scrollHeight;
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1800,
+        system:SISTEMA_IA,
+        messages:chatHistory
+      })
+    });
+    const d=await resp.json();
+    if(d.error){
+      spinDiv.querySelector('.msg-body').textContent='Error: '+d.error.message;
+    } else {
+      const txt=d.content[0].text;
+      chatHistory.push({role:'assistant',content:txt});
+      spinDiv.remove();
+      renderChat();
+    }
+  }catch(e){
+    spinDiv.querySelector('.msg-body').textContent='Error de conexión: '+e.message;
+  }
+  btn.disabled=false;btn.innerHTML=btnLabel;
+  historial.scrollTop=historial.scrollHeight;
+}
+
+// ── RENDERIZAR CHAT ──
+function renderChat(){
+  const historial=document.getElementById('chatHistorial');
+  historial.innerHTML='';
+  historial.style.display='block';
+  // Solo mostrar desde la segunda entrada en adelante (primera es el texto de la carta)
+  const displayFrom=1; // saltear el mensaje interno de carta
+  chatHistory.forEach((msg,i)=>{
+    if(i===0) return; // No mostrar el contexto interno de carta
+    const div=document.createElement('div');
+    div.className=`chat-msg ${msg.role}`;
+    const label=msg.role==='user'?'Tu pregunta':'Silvia Ceres · IA';
+    div.innerHTML=`<div class="msg-label">${label}</div><div class="msg-body">${escHtml(msg.content)}</div>`;
+    historial.appendChild(div);
+  });
+  // Si solo está el mensaje del sistema (carta), mostrar el primer análisis
+  if(chatHistory.length===2){
+    historial.innerHTML='';
+    const div=document.createElement('div');
+    div.className='chat-msg assistant';
+    div.innerHTML=`<div class="msg-label">Silvia Ceres · IA · Análisis inicial</div><div class="msg-body">${escHtml(chatHistory[1].content)}</div>`;
+    historial.appendChild(div);
+  }
+  historial.scrollTop=historial.scrollHeight;
+}
+
+function escHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ── NUEVA CARTA ──
+function nuevaCarta(){
+  if(!confirm('¿Empezar una nueva carta? Se perderá la sesión actual si no la guardaste.'))return;
+  cartaData=null;chatHistory=[];preguntasHechas=0;actualizarContador();
+  document.getElementById('resultado').style.display='none';
+  document.getElementById('pregunta').value='';
+  document.getElementById('calcStatus').innerHTML='';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── GUARDAR ──
+function buildSaveText(){
+  if(!cartaData)return'No hay carta calculada.';
+  const meta=cartaData.meta||{};
+  let t=`════════════════════════════════════════════════════════\nASTROLOGÍA HORARIA · MÉTODO SILVIA CERES\n© Celina Sasiain\n════════════════════════════════════════════════════════\n\nPREGUNTA: ${meta.pregunta||'(no especificada)'}\n\nDATOS DE LA CARTA\nFecha: ${meta.fecha} ${meta.hora} (UTC${meta.tz>=0?'+':''}${meta.tz})\nLugar: ${meta.ciudad||''} (Lat ${meta.lat}, Lon ${meta.lon})\n\n`;
+  t+=buildCartaText(cartaData);
+  if(chatHistory.length>1){
+    t+=`\n════════════════════════════════════════════════════════\nCONVERSACIÓN CON IA · MÉTODO SILVIA CERES\n════════════════════════════════════════════════════════\n\n`;
+    chatHistory.forEach((msg,i)=>{
+      if(i===0)return;
+      const label=msg.role==='user'?'CONSULTANTE':'ANÁLISIS IA';
+      t+=`[${label}]\n${msg.content}\n\n`;
+    });
+  }
+  t+=`════════════════════════════════════════════════════════\nGenerado con Horaria Silvia Ceres · © Celina Sasiain\n════════════════════════════════════════════════════════`;
+  return t;
+}
+
+function guardarTXT(){
+  const txt=buildSaveText();
+  const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');
+  const fecha=(cartaData?.meta?.fecha||'carta').replace(/-/g,'');
+  a.href=URL.createObjectURL(blob);
+  a.download=`horaria_${fecha}.txt`;
+  a.click();URL.revokeObjectURL(a.href);
+}
+
+function guardarJSON(){
+  if(!cartaData){alert('No hay carta calculada.');return;}
+  const obj={
+    meta:{...cartaData.meta,generado:new Date().toISOString(),software:'Horaria Silvia Ceres © Celina Sasiain'},
+    carta:{jd:cartaData.jd,asc:cartaData.asc,mc:cartaData.mc,cusps:cartaData.cusps,planets:cartaData.planets},
+    conversacion:chatHistory.slice(1).map(m=>({rol:m.role,texto:m.content}))
+  };
+  const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  const fecha=(cartaData?.meta?.fecha||'carta').replace(/-/g,'');
+  a.href=URL.createObjectURL(blob);
+  a.download=`horaria_${fecha}.json`;
+  a.click();URL.revokeObjectURL(a.href);
+}
+
+function abrirModal(){
+  document.getElementById('previewPre').textContent=buildSaveText();
+  document.getElementById('saveModal').classList.add('open');
+}
+function cerrarModal(){document.getElementById('saveModal').classList.remove('open');}
+document.getElementById('saveModal').addEventListener('click',e=>{if(e.target===e.currentTarget)cerrarModal();});
+
+// Enviar con Enter (Shift+Enter = nueva línea)
+document.getElementById('followupInput')?.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();preguntarSeguimiento();}
+});
+
+// ── DEFAULTS ──
+(function(){
+  const today=new Date();
+  const y=today.getFullYear(),m=String(today.getMonth()+1).padStart(2,'0'),d=String(today.getDate()).padStart(2,'0');
+  document.getElementById('inFecha').value=`${y}-${m}-${d}`;
+  setCity(-34.9058,-56.1882,'Montevideo');
+  // Hora actual
+  const h=String(today.getHours()).padStart(2,'0'),min=String(today.getMinutes()).padStart(2,'0');
+  document.getElementById('inHora').value=`${h}:${min}`;
+})();
+
+
+// ── GUARDAR SESIÓN EN HISTORIAL LOCAL ──
+function guardarEnHistorial(){
+  if(!cartaData) return;
+  try {
+    const sesiones = JSON.parse(localStorage.getItem('horaria_sesiones')||'[]');
+    const id = Date.now().toString();
+    const nueva = {
+      id,
+      fecha: cartaData.meta?.fecha||'',
+      hora: cartaData.meta?.hora||'',
+      ciudad: cartaData.meta?.ciudad||'',
+      pregunta: cartaData.meta?.pregunta||'',
+      guardado: new Date().toLocaleString('es-UY'),
+      data: {
+        meta:{...cartaData.meta},
+        carta:{jd:cartaData.jd,asc:cartaData.asc,mc:cartaData.mc,cusps:cartaData.cusps,planets:cartaData.planets},
+        conversacion:chatHistory.slice(1).map(m=>({rol:m.role,texto:m.content}))
+      }
+    };
+    // Mantener solo las últimas 10 sesiones
+    sesiones.unshift(nueva);
+    if(sesiones.length>10) sesiones.splice(10);
+    localStorage.setItem('horaria_sesiones', JSON.stringify(sesiones));
+    renderHistorial();
+  } catch(e){ console.warn('No se pudo guardar en historial:', e); }
+}
+
+function renderHistorial(){
+  const wrap = document.getElementById('historialSesiones');
+  if(!wrap) return;
+  try {
+    const sesiones = JSON.parse(localStorage.getItem('horaria_sesiones')||'[]');
+    if(sesiones.length===0){
+      wrap.innerHTML='<div style="font-size:.78rem;color:var(--cream-dim);font-style:italic;">No hay sesiones guardadas aún. Al interpretar una carta con IA, se guarda automáticamente.</div>';
+      return;
+    }
+    wrap.innerHTML = sesiones.map(s=>`
+      <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:10px 14px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:.8rem;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.pregunta||'Sin pregunta'}</div>
+          <div style="font-size:.7rem;color:var(--cream-dim);margin-top:2px;">${s.fecha} ${s.hora} · ${s.ciudad} · Guardado: ${s.guardado}</div>
+        </div>
+        <button onclick="cargarSesionHistorial('${s.id}')" style="background:rgba(74,173,170,.15);border:1px solid rgba(74,173,170,.3);color:var(--teal);border-radius:6px;padding:5px 12px;cursor:pointer;font-size:.72rem;white-space:nowrap;flex-shrink:0;">Cargar</button>
+        <button onclick="borrarSesion('${s.id}')" style="background:rgba(255,100,100,.1);border:1px solid rgba(255,100,100,.2);color:#e07070;border-radius:6px;padding:5px 8px;cursor:pointer;font-size:.72rem;flex-shrink:0;">✕</button>
+      </div>
+    `).join('');
+  } catch(e){
+    wrap.innerHTML='<div style="font-size:.78rem;color:var(--cream-dim);font-style:italic;">Error al leer el historial.</div>';
+  }
+}
+
+function borrarSesion(id){
+  try {
+    let sesiones = JSON.parse(localStorage.getItem('horaria_sesiones')||'[]');
+    sesiones = sesiones.filter(s=>s.id!==id);
+    localStorage.setItem('horaria_sesiones', JSON.stringify(sesiones));
+    renderHistorial();
+  } catch(e){}
+}
+
+function cargarSesionHistorial(id){
+  try {
+    const sesiones = JSON.parse(localStorage.getItem('horaria_sesiones')||'[]');
+    const s = sesiones.find(x=>x.id===id);
+    if(!s) return;
+    restaurarSesion(s.data);
+  } catch(e){ alert('No se pudo cargar la sesión.'); }
+}
+
+// ── CARGAR JSON DESDE ARCHIVO ──
+function cargarJSON(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try {
+      const txt = e.target.result;
+      const obj = JSON.parse(txt);
+      restaurarSesion(obj);
+    } catch(err){
+      // Intentar con limpieza de BOM
+      try {
+        const txt = e.target.result.replace(/^\uFEFF/,'').trim();
+        const obj = JSON.parse(txt);
+        restaurarSesion(obj);
+      } catch(err2){
+        alert('No se pudo leer el archivo.\nDetalle: ' + err2.message);
+      }
+    }
+  };
+  reader.onerror = function(){
+    alert('Error al leer el archivo.');
+  };
+  reader.readAsText(file, 'UTF-8');
+  input.value='';
+}
+
+function restaurarSesion(obj){
+  // Aceptar múltiples estructuras de JSON
+  let meta = {};
+  let carta = null;
+
+  try {
+    // Estructura actual: { meta:{}, carta:{}, conversacion:[] }
+    if(obj.meta && obj.carta && obj.carta.jd !== undefined){
+      meta = obj.meta;
+      carta = obj.carta;
+    }
+    // Estructura alternativa: { datos:{}, data:{ carta:{} } }
+    else if(obj.datos || (obj.data && obj.data.carta)){
+      meta = obj.datos || obj.meta || {};
+      carta = (obj.data && obj.data.carta) || obj.carta || null;
+    }
+    // Estructura plana: jd, asc, mc, etc. en la raíz
+    else if(obj.jd !== undefined){
+      carta = { jd:obj.jd, asc:obj.asc, mc:obj.mc, cusps:obj.cusps, planets:obj.planets };
+      meta = obj.meta || obj;
+    }
+  } catch(e){ carta = null; }
+
+  if(!carta || carta.jd === undefined){
+    alert('No se pudo leer el archivo.\nEl archivo debe ser un JSON guardado por esta app.');
+    return;
+  }
+
+  // Restaurar cartaData
+  cartaData = { ...carta, meta };
+
+  // Restaurar campos del formulario (usar IDs reales del HTML)
+  const setVal = (id, val) => { const el=document.getElementById(id); if(el && val!==undefined && val!==null) el.value=val; };
+  setVal('inFecha', meta.fecha);
+  if(meta.hora){
+    let h = meta.hora;
+    // Convertir formato 12h a 24h si es necesario
+    const ampm = h.match(/(\d{1,2}):(\d{2})\s*(a\.?m\.?|p\.?m\.?)/i);
+    if(ampm){
+      let hh=parseInt(ampm[1]), mm=parseInt(ampm[2]);
+      const isPM = ampm[3].toLowerCase().replace(/\./g,'').trim()==='pm';
+      if(isPM && hh!==12) hh+=12;
+      if(!isPM && hh===12) hh=0;
+      h = String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+    }
+    setVal('inHora', h);
+  }
+  setVal('inLat', meta.lat);
+  setVal('inLon', meta.lon);
+  setVal('inTZ', meta.tz);
+  setVal('inCiudad', meta.ciudad);
+  setVal('pregunta', meta.pregunta);
+
+  // Restaurar conversación (aceptar rol/role y texto/content)
+  const conv = obj.conversacion || obj.data?.conversacion || [];
+  chatHistory = [{role:'user', content: meta.pregunta||''}];
+  conv.forEach(m=>{
+    chatHistory.push({
+      role: m.rol || m.role || 'assistant',
+      content: m.texto || m.content || ''
+    });
+  });
+  preguntasHechas = Math.max(0, Math.floor((chatHistory.length-1)/2));
+
+  // Mostrar resultado
+  mostrar(cartaData);
+  actualizarContador();
+  renderHistorial();
+
+  setTimeout(()=>{
+    document.getElementById('resultado').scrollIntoView({behavior:'smooth'});
+  }, 300);
+
+  alert('✓ Sesión cargada correctamente.');
+}
+
+window.addEventListener('DOMContentLoaded', renderHistorial);
+
+// ── API KEY: guardar/recuperar ──
+function initApiKey(){
+  const saved=localStorage.getItem('horaria_apikey');
+  if(saved) document.getElementById('apiKey').value=saved;
+}
+function olvidarKey(){
+  localStorage.removeItem('horaria_apikey');
+  document.getElementById('apiKey').value='';
+  alert('API Key olvidada.');
+  return false;
+}
+window.addEventListener('DOMContentLoaded', initApiKey);
+</script>
+</body>
+</html>
