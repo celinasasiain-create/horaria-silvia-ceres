@@ -37,9 +37,13 @@ header p.sub{color:var(--cream-dim);font-size:.83rem;margin-top:6px;letter-spaci
 .fg select option{background:var(--night-mid);}
 .fw{grid-column:1/-1;}
 
-textarea.pregunta-input{width:100%;background:var(--night);border:1px solid var(--night-light);border-radius:8px;color:var(--cream);padding:12px 14px;font-size:.92rem;font-family:'Lato',sans-serif;outline:none;resize:vertical;min-height:72px;line-height:1.6;transition:border-color .2s;margin-top:4px;}
+textarea.pregunta-input{width:100%;background:var(--night);border:1px solid var(--night-light);border-radius:8px;color:var(--cream);padding:12px 14px;font-size:.92rem;font-family:'Lato',sans-serif;outline:none;resize:vertical;min-height:72px;line-height:1.6;transition:border-color .2s;margin-top:4px;-webkit-user-select:text;user-select:text;touch-action:auto;-webkit-tap-highlight-color:transparent;cursor:text;}
 textarea.pregunta-input:focus{border-color:var(--violet);}
 textarea.pregunta-input::placeholder{color:var(--cream-dim);}
+#btnMic{outline:none;}
+#btnMic:hover{background:rgba(42,80,112,.8);transform:scale(1.08);}
+#btnMic.recording{background:rgba(180,40,40,.7);border-color:#E06060;animation:pulse-mic .8s infinite;}
+@keyframes pulse-mic{0%,100%{box-shadow:0 0 0 0 rgba(224,96,96,.5);}50%{box-shadow:0 0 0 8px rgba(224,96,96,0);}}
 
 .btn{border:none;border-radius:8px;cursor:pointer;font-family:'Cinzel',serif;letter-spacing:.09em;transition:opacity .2s,transform .15s;display:inline-flex;align-items:center;gap:8px;}
 .btn:hover{opacity:.88;transform:translateY(-1px);}
@@ -118,7 +122,7 @@ footer strong{color:var(--gold);}
 </style>
 </head>
 <body>
-<canvas id="stars"></canvas>
+<canvas id="stars" style="pointer-events:none;"></canvas>
 
 <div class="wrap">
 <header>
@@ -133,7 +137,16 @@ footer strong{color:var(--gold);}
 
   <div class="fg fw" style="margin-bottom:16px;">
     <label>Pregunta del consultante</label>
-    <textarea id="pregunta" class="pregunta-input" placeholder="Escribe aquí la pregunta exacta, tal como fue formulada…" rows="3"></textarea>
+    <div style="position:relative;">
+      <textarea id="pregunta" class="pregunta-input" placeholder="Escribe aquí la pregunta exacta, tal como fue formulada…" rows="3" autocomplete="off" autocorrect="on" spellcheck="true" inputmode="text"></textarea>
+      <button id="btnMic" onclick="toggleMic()" title="Grabar pregunta con voz" style="position:absolute;bottom:10px;right:10px;background:rgba(42,80,112,.5);border:1px solid var(--violet);border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;font-size:1.1rem;">🎙️</button>
+    </div>
+    <div id="micStatus" style="font-size:.75rem;color:var(--cream-dim);margin-top:4px;min-height:16px;"></div>
+    <!-- API Key OpenAI para Whisper (fallback) -->
+    <div id="whisperKeyWrap" style="display:none;margin-top:6px;">
+      <input id="openaiKey" type="password" placeholder="API Key de OpenAI (para transcripción de voz)" style="width:100%;background:rgba(20,30,50,.7);border:1px solid rgba(42,80,112,.4);border-radius:6px;color:var(--cream);padding:7px 12px;font-size:.78rem;" />
+      <div style="font-size:.7rem;color:var(--cream-dim);margin-top:3px;">Solo se usa para transcribir tu voz con Whisper. Se guarda en este dispositivo.</div>
+    </div>
   </div>
 
   <div class="form-grid">
@@ -3980,7 +3993,7 @@ function fastPlanets(jd,Y,M,D,hUT){
   // ── LUNA: tabla Swiss Ephemeris cada 6h + interpolación (error <0.1') ──
   const lunaLon = (function(){
     const start = new Date('2026-01-01');
-    const today = new Date(Date.UTC(YUT, MUT-1, DUT));
+    const today = new Date(Date.UTC(Y, M-1, D));
     const dayIdx = Math.round((today - start) / 86400000);
     if(dayIdx < 0 || dayIdx * 4 + 3 >= MOON_TABLE.length) {
       // Fuera de rango: fallback Meeus simplificado
@@ -4471,6 +4484,7 @@ async function calcular(){
   let data=null;
   let source='tabla';
 
+  try {
   // Calcular con efemérides integradas + Moshier para planetas rápidos
   const jd=julianDay(Y,M,D,hourUT);
     const{asc,mc,ramc}=calcAsc(jd,lat,lon);
@@ -4519,6 +4533,16 @@ async function calcular(){
 
   mostrar(data);
   btn.disabled=false;
+  } catch(err) {
+    btn.disabled=false;
+    st.innerHTML='';
+    console.error('Error en cálculo:', err);
+    document.getElementById('resultado').style.display='block';
+    document.getElementById('resultado').innerHTML =
+      '<div style="color:#E06060;padding:20px;font-size:.9rem;background:rgba(80,20,20,.4);border-radius:8px;">' +
+      '<strong>⚠ Error en el cálculo:</strong><br><br>' + err.message +
+      '<br><br><small style="opacity:.7">' + (err.stack||'').split('\n').slice(0,4).join('<br>') + '</small></div>';
+  }
 }
 
 // ── MOSTRAR ──
@@ -4570,19 +4594,22 @@ function checkRadical(data){
     tipo='warn';
   }
 
-  // ── VÍA COMBUSTA ──
-  const vc=l=>{
-    if(l>=195&&l<225){
-      if(Math.abs(l-203.7)<=1){msgs.push('✦ '+(l===asc?'Ascendente':'Luna')+' cerca de <strong>Spica</strong> (24° Libra): excepción positiva a la Vía Combusta.');}
-      else{msgs.push('⚠ '+(l===asc?'Ascendente':'Luna')+' en <strong>VÍA COMBUSTA</strong> (15° Libra – 15° Escorpio): los eventos cambiarán de forma brusca e impredecible.');if(tipo!=='warn')tipo='caution';}
+  // ── VÍA COMBUSTA: afecta solo a la Luna (fuente clásica: Bonatti, Al Biruni, Estadella) ──
+  // 15° Libra – 15° Escorpio = 195° – 225°. Excepción: Spica ~24° Libra (203.7°)
+  const lunaVC = planets.Luna.lon;
+  if(lunaVC >= 195 && lunaVC < 225){
+    if(Math.abs(lunaVC - 203.7) <= 1){
+      msgs.push('✦ Luna cerca de <strong>Spica</strong> (24° Libra): excepción positiva a la Vía Combusta. La estrella protege a la Luna.');
+    } else {
+      msgs.push('⚠ <strong>Luna en VÍA COMBUSTA</strong> (15° Libra – 15° Escorpio): la Luna está debilitada como significadora universal. Los eventos pueden cambiar de forma brusca e impredecible.');
+      if(tipo !== 'warn') tipo = 'caution';
     }
-  };
-  vc(asc);vc(planets.Luna.lon);
+  }
 
   const banner=document.getElementById('radicalBanner');
   if(!msgs.length){
     banner.className='radical radical-ok';
-    banner.innerHTML='✔ Carta <strong>radical</strong>: Ascendente válido, Saturno fuera de casas angulares críticas, sin Vía Combusta. Se puede proceder a la interpretación.';
+    banner.innerHTML='✔ Carta <strong>radical</strong>: Ascendente válido, Saturno fuera de casas angulares críticas, Luna fuera de Vía Combusta. Se puede proceder a la interpretación.';
   } else {
     banner.className=`radical radical-${tipo}`;
     banner.innerHTML=msgs.join('<br><br>');
@@ -4834,7 +4861,7 @@ FUNDAMENTOS DEL MÉTODO SILVIA CERES:
 RADICABILIDAD — La carta es válida si:
 • Ascendente entre 3° y 27° del signo.
 • Saturno NO en Casa I (primeros 10°) ni en Casa VII (salvo excepciones).
-• Luna y Asc fuera de Vía Combusta (15° Libra - 15° Escorpio), excepto Spica (24° Libra).
+• Luna fuera de Vía Combusta (15° Libra - 15° Escorpio), excepto Spica (24° Libra).
 • Si la carta no es radical, advertilo claramente antes de analizar.
 
 SIGNIFICADORES:
@@ -5343,6 +5370,191 @@ function olvidarKey(){
   return false;
 }
 window.addEventListener('DOMContentLoaded', initApiKey);
+
+// ── GRABACIÓN DE VOZ ──
+// Estrategia: Web Speech API primero (gratis, nativo), Whisper como fallback
+
+let _micRecognition = null;  // Web Speech API instance
+let _mediaRecorder = null;   // MediaRecorder para Whisper
+let _audioChunks = [];
+let _micActive = false;
+
+function toggleMic() {
+  if (_micActive) {
+    stopMic();
+  } else {
+    startMic();
+  }
+}
+
+function startMic() {
+  const btn = document.getElementById('btnMic');
+  const status = document.getElementById('micStatus');
+
+  // Intentar Web Speech API primero
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (SpeechRecognition) {
+    _micRecognition = new SpeechRecognition();
+    _micRecognition.lang = 'es-ES';
+    _micRecognition.continuous = true;
+    _micRecognition.interimResults = true;
+
+    const preguntaEl = document.getElementById('pregunta');
+    let baseText = preguntaEl.value;
+    let interimText = '';
+
+    _micRecognition.onstart = () => {
+      _micActive = true;
+      btn.classList.add('recording');
+      btn.title = 'Tocá para detener la grabación';
+      btn.textContent = '⏹️';
+      status.textContent = '🔴 Grabando… hablá tu pregunta';
+    };
+
+    _micRecognition.onresult = (e) => {
+      interimText = '';
+      let finalText = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) {
+          finalText += e.results[i][0].transcript;
+        } else {
+          interimText += e.results[i][0].transcript;
+        }
+      }
+      if (finalText) baseText += (baseText ? ' ' : '') + finalText;
+      preguntaEl.value = baseText + (interimText ? ' ' + interimText : '');
+    };
+
+    _micRecognition.onerror = (e) => {
+      if (e.error === 'not-allowed') {
+        status.textContent = '⚠ Permiso de micrófono denegado. Habilitalo en el navegador.';
+      } else if (e.error === 'no-speech') {
+        status.textContent = '⚠ No se detectó voz. Intentá de nuevo.';
+      } else {
+        // Fallback a Whisper
+        status.textContent = 'Web Speech no disponible, usando Whisper…';
+        stopMic();
+        startWhisper();
+      }
+    };
+
+    _micRecognition.onend = () => {
+      if (_micActive) {
+        // Se cortó solo — reiniciar para grabación continua
+        try { _micRecognition.start(); } catch(e) {}
+      }
+    };
+
+    try {
+      _micRecognition.start();
+    } catch(e) {
+      status.textContent = 'Iniciando Whisper…';
+      startWhisper();
+    }
+
+  } else {
+    // Web Speech no disponible → Whisper directamente
+    startWhisper();
+  }
+}
+
+function stopMic() {
+  _micActive = false;
+  const btn = document.getElementById('btnMic');
+  const status = document.getElementById('micStatus');
+  btn.classList.remove('recording');
+  btn.title = 'Grabar pregunta con voz';
+  btn.textContent = '🎙️';
+
+  if (_micRecognition) {
+    try { _micRecognition.stop(); } catch(e) {}
+    _micRecognition = null;
+    status.textContent = '✓ Grabación finalizada.';
+    setTimeout(() => { status.textContent = ''; }, 3000);
+  }
+
+  if (_mediaRecorder && _mediaRecorder.state !== 'inactive') {
+    _mediaRecorder.stop(); // onStop enviará a Whisper
+  }
+}
+
+async function startWhisper() {
+  const btn = document.getElementById('btnMic');
+  const status = document.getElementById('micStatus');
+  const keyWrap = document.getElementById('whisperKeyWrap');
+
+  // Pedir clave OpenAI si no está guardada
+  let openaiKey = localStorage.getItem('openai_key') ||
+                  document.getElementById('openaiKey').value.trim();
+  if (!openaiKey) {
+    keyWrap.style.display = 'block';
+    document.getElementById('openaiKey').focus();
+    status.textContent = 'Ingresá tu API Key de OpenAI y volvé a tocar el micrófono.';
+    return;
+  }
+  localStorage.setItem('openai_key', openaiKey);
+  keyWrap.style.display = 'none';
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    _audioChunks = [];
+    _mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+
+    _mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) _audioChunks.push(e.data);
+    };
+
+    _mediaRecorder.onstop = async () => {
+      status.textContent = '⏳ Transcribiendo con Whisper…';
+      stream.getTracks().forEach(t => t.stop());
+
+      const audioBlob = new Blob(_audioChunks, { type: 'audio/webm' });
+      const formData = new FormData();
+      formData.append('file', audioBlob, 'pregunta.webm');
+      formData.append('model', 'whisper-1');
+      formData.append('language', 'es');
+
+      try {
+        const resp = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${openaiKey}` },
+          body: formData,
+        });
+        if (!resp.ok) throw new Error(`Whisper error ${resp.status}`);
+        const data = await resp.json();
+        const preguntaEl = document.getElementById('pregunta');
+        const transcript = data.text.trim();
+        preguntaEl.value = (preguntaEl.value ? preguntaEl.value + ' ' : '') + transcript;
+        status.textContent = '✓ Transcripción completa.';
+        setTimeout(() => { status.textContent = ''; }, 3000);
+      } catch(e) {
+        status.textContent = '⚠ Error en Whisper: ' + e.message;
+      }
+    };
+
+    _mediaRecorder.start();
+    _micActive = true;
+    btn.classList.add('recording');
+    btn.title = 'Tocá para detener y transcribir';
+    btn.textContent = '⏹️';
+    status.textContent = '🔴 Grabando con Whisper… tocá ⏹️ para terminar';
+
+  } catch(e) {
+    status.textContent = '⚠ No se pudo acceder al micrófono: ' + e.message;
+  }
+}
+
+// Guardar clave OpenAI si se escribe manualmente
+window.addEventListener('DOMContentLoaded', () => {
+  const keyInput = document.getElementById('openaiKey');
+  if (keyInput) {
+    const saved = localStorage.getItem('openai_key');
+    if (saved) keyInput.value = saved;
+    keyInput.addEventListener('change', () => {
+      if (keyInput.value.trim()) localStorage.setItem('openai_key', keyInput.value.trim());
+    });
+  }
+});
 </script>
 </body>
 </html>
