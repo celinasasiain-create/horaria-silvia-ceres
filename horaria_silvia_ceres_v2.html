@@ -4391,20 +4391,52 @@ function checkRadical(data){
   const ascDeg=asc%30;
   const satH=getHouse(planets.Saturno.lon,cusps);
   const msgs=[];let tipo='ok';
-  if(ascDeg<3){msgs.push('⚠ Ascendente entre 0° y 3°: la pregunta es PREMATURA. La situación es embrionaria y todavía no tiene forma definida.');tipo='warn';}
-  else if(ascDeg>=27){msgs.push('⚠ Ascendente entre 27° y 30°: la pregunta es TARDÍA. El asunto ya está resuelto o el consultante ya tomó una decisión.');tipo='warn';}
-  if(satH===1&&(planets.Saturno.lon%30)<10){msgs.push('⚠ Saturno en Ascendente (primeros 10° de Casa I): la pregunta puede no ser veraz o el consultante no la formula bien.');tipo='warn';}
-  if(satH===7){msgs.push('◈ Saturno en Casa VII: la comprensión del astrólogo puede estar interferida. Verificar datos. Puede responderse si el astrólogo pregunta por sí mismo.');if(tipo!=='warn')tipo='caution';}
+
+  // ── SATURNO EN CASA VII: regla prioritaria (Silvia Ceres) ──
+  // Carta NO RADICAL. El análisis se detiene.
+  // Excepción: si el astrólogo (Kairós) pregunta por sí mismo, puede proceder.
+  if(satH===7){
+    const banner=document.getElementById('radicalBanner');
+    banner.className='radical radical-warn';
+    banner.innerHTML=
+      '<strong>⛔ CARTA NO RADICAL — Saturno en Casa VII</strong><br><br>' +
+      'Saturno en Casa VII indica que el astrólogo (Kairós) no está claro en este momento. ' +
+      'La carta <strong>no puede interpretarse</strong> en estas condiciones.<br><br>' +
+      '<strong>Excepción:</strong> si quien consulta es el propio astrólogo preguntando para sí mismo, ' +
+      'puede proceder con el análisis a su criterio.<br><br>' +
+      '↩ Verificá los datos de la carta o aguardá un momento más propicio para preguntar.';
+    // Bloquear el análisis IA
+    data._noRadical = 'saturno_casa7';
+    return;
+  }
+
+  // ── ASCENDENTE ──
+  if(ascDeg<3){msgs.push('⚠ <strong>Ascendente entre 0° y 3°:</strong> la pregunta es PREMATURA. La situación es embrionaria y todavía no tiene forma definida.');tipo='warn';}
+  else if(ascDeg>=27){msgs.push('⚠ <strong>Ascendente entre 27° y 30°:</strong> la pregunta es TARDÍA. El asunto ya está resuelto o el consultante ya tomó una decisión.');tipo='warn';}
+
+  // ── SATURNO EN CASA I (primeros 10°) ──
+  if(satH===1&&(planets.Saturno.lon%30)<10){
+    msgs.push('⚠ <strong>Saturno en Ascendente</strong> (primeros 10° de Casa I): la pregunta puede no ser veraz o el consultante no la formula con claridad.');
+    tipo='warn';
+  }
+
+  // ── VÍA COMBUSTA ──
   const vc=l=>{
     if(l>=195&&l<225){
-      if(Math.abs(l-203.7)<=1){msgs.push('✦ '+( l===asc?'Ascendente':'Luna')+' cerca de Spica (24° Libra): excepción positiva a la Vía Combusta.');}
-      else{msgs.push('⚠ '+(l===asc?'Ascendente':'Luna')+' en VÍA COMBUSTA (15° Libra – 15° Escorpio): los eventos cambiarán de forma brusca e impredecible.');if(tipo!=='warn')tipo='caution';}
+      if(Math.abs(l-203.7)<=1){msgs.push('✦ '+(l===asc?'Ascendente':'Luna')+' cerca de <strong>Spica</strong> (24° Libra): excepción positiva a la Vía Combusta.');}
+      else{msgs.push('⚠ '+(l===asc?'Ascendente':'Luna')+' en <strong>VÍA COMBUSTA</strong> (15° Libra – 15° Escorpio): los eventos cambiarán de forma brusca e impredecible.');if(tipo!=='warn')tipo='caution';}
     }
   };
   vc(asc);vc(planets.Luna.lon);
+
   const banner=document.getElementById('radicalBanner');
-  if(!msgs.length){banner.className='radical radical-ok';banner.innerHTML='✔ Carta <strong>radical</strong>: Ascendente válido, sin condicionantes de Saturno ni Vía Combusta. Se puede proceder a la interpretación.';}
-  else{banner.className=`radical radical-${tipo}`;banner.innerHTML=msgs.join('<br><br>');}
+  if(!msgs.length){
+    banner.className='radical radical-ok';
+    banner.innerHTML='✔ Carta <strong>radical</strong>: Ascendente válido, Saturno fuera de casas angulares críticas, sin Vía Combusta. Se puede proceder a la interpretación.';
+  } else {
+    banner.className=`radical radical-${tipo}`;
+    banner.innerHTML=msgs.join('<br><br>');
+  }
 }
 
 // ── TABLA PLANETAS ──
@@ -4772,6 +4804,11 @@ async function interpretarIA(){
   if(!apiKey){alert('Ingresá tu API Key de Anthropic.');return;}
   localStorage.setItem('horaria_apikey',apiKey);
   if(!cartaData){alert('Primero calculá la carta.');return;}
+  // ── Verificar radicabilidad antes de proceder ──
+  if(cartaData._noRadical==='saturno_casa7'){
+    alert('⛔ Carta no radical: Saturno está en Casa VII.\n\nKairós no puede interpretar esta carta porque el astrólogo (la app) no está claro en este momento.\n\nExcepción: si sos vos quien pregunta para sí mismo, podés proceder bajo tu propio criterio.');
+    return;
+  }
   const btn=document.getElementById('btnIA');
   btn.disabled=true;btn.innerHTML='<span class="spin"></span> Analizando…';
   const preguntaTxt=cartaData.meta?.pregunta||'';
