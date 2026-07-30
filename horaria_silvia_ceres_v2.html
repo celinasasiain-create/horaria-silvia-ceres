@@ -3790,10 +3790,10 @@ const MER_RX = [
   {start:2451545+16744,end:2451545+16765},  // 5/11/2045-25/11/2045
 ];
 
-function getInnerPlanets(Y,M,D,hourUT){
+function getInnerPlanets(Y,M,D,hUT){
   // Busca los dos puntos más cercanos de la tabla (cada 5 días) e interpola
   // hourUT: hora decimal en UT (para fracción dentro del día)
-  const h = (hourUT||0)/24;  // fracción del día
+  const h = (hUT||0)/24;  // fracción del día UT
   // Construir clave del punto anterior: día redondeado al múltiplo de 5 anterior
   const d0 = D - ((D-1)%5);  // día inicial del intervalo (1,6,11,16,21,26,31)
   const d1 = d0 + 5;          // día siguiente
@@ -3829,7 +3829,7 @@ function isMerRx(jd){
   return false;
 }
 
-function fastPlanets(jd,Y,M,D,hourUT){
+function fastPlanets(jd,Y,M,D,hUT){
   const T=(jd-2451545.0)/36525.0;
   // ── SOL: algoritmo Meeus cap.25 (precision ~0.01°) ──
   const L0=n360(280.46646+36000.76983*T+0.0003032*T*T);
@@ -3843,7 +3843,7 @@ function fastPlanets(jd,Y,M,D,hourUT){
   // ── LUNA: tabla Swiss Ephemeris cada 6h + interpolación (error <0.1') ──
   const lunaLon = (function(){
     const start = new Date('2026-01-01');
-    const today = new Date(Date.UTC(Y, M-1, D));
+    const today = new Date(Date.UTC(YUT, MUT-1, DUT));
     const dayIdx = Math.round((today - start) / 86400000);
     if(dayIdx < 0 || dayIdx * 4 + 3 >= MOON_TABLE.length) {
       // Fuera de rango: fallback Meeus simplificado
@@ -3853,8 +3853,8 @@ function fastPlanets(jd,Y,M,D,hourUT){
       return n360(Lm2+6.289*Math.sin(toRad(Mp2))+1.274*Math.sin(toRad(2*D2-Mp2))+0.658*Math.sin(toRad(2*D2)));
     }
     // Índice base: cada día tiene 4 entradas (0h,6h,12h,18h)
-    const slotH = Math.floor(hourUT / 6);       // 0,1,2,3
-    const fracH = (hourUT % 6) / 6;              // fracción dentro del slot de 6h
+    const slotH = Math.floor(hUT / 6);       // 0,1,2,3
+    const fracH = (hUT % 6) / 6;              // fracción dentro del slot de 6h
     const idx0 = dayIdx * 4 + slotH;
     const idx1 = idx0 + 1;
     const l0 = MOON_TABLE[idx0];
@@ -3865,7 +3865,7 @@ function fastPlanets(jd,Y,M,D,hourUT){
     return n360(l0 + dl * fracH);
   })();
   // ── MERCURIO/VENUS/MARTE: tabla precisa 2026, Meeus simplificado otros años ──
-  const inner=getInnerPlanets(Y,M,D,hourUT);
+  const inner=getInnerPlanets(Y,M,D,hUT);
   let merLon,venLon,marLon,merRx=false,venRx=false,marRx=false;
   if(inner){
     merLon=inner.Mercurio; venLon=inner.Venus; marLon=inner.Marte;
@@ -4313,6 +4313,19 @@ async function calcular(){
   const [Y,M,D]=fecha.split('-').map(Number);
   const [H,Min]=hora.split(':').map(Number);
   const hourUT=H+Min/60-tz;
+  // Derivar fecha UT desde JD (hourUT puede cruzar medianoche)
+  const jd0=julianDay(Y,M,D,hourUT);
+  // Convertir JD a fecha UT para usar en tablas de planetas
+  const jd0_floor=Math.floor(jd0+0.5);
+  const jd0_frac=(jd0+0.5)-jd0_floor;
+  const jd0_z=jd0_floor; const jd0_a=jd0_z>=2299161?Math.floor((jd0_z-1867216.25)/36524.25):jd0_z;
+  const jd0_b=jd0_z>=2299161?jd0_z+1+jd0_a-Math.floor(jd0_a/4):jd0_z;
+  const jd0_c=jd0_b+1524; const jd0_d=Math.floor((jd0_c-122.1)/365.25);
+  const jd0_e=Math.floor(365.25*jd0_d); const jd0_g=Math.floor((jd0_c-jd0_e)/30.6001);
+  const YUT=jd0_d-(jd0_g<14?4716:4715);
+  const MUT=jd0_g<14?jd0_g-1:jd0_g-13;
+  const DUT=jd0_c-jd0_e-Math.floor(30.6001*jd0_g);
+  const hUT=jd0_frac*24;
   const btn=document.getElementById('btnCalc');
   const st=document.getElementById('calcStatus');
   btn.disabled=true;
@@ -4324,8 +4337,8 @@ async function calcular(){
   // Calcular con efemérides integradas + Moshier para planetas rápidos
   const jd=julianDay(Y,M,D,hourUT);
     const{asc,mc,ramc}=calcAsc(jd,lat,lon);
-    const fast=fastPlanets(jd,Y,M,D,hourUT);
-    const slow=getSlowPlanets(Y,M,D);
+    const fast=fastPlanets(jd,YUT,MUT,DUT,hUT);
+    const slow=getSlowPlanets(YUT,MUT,DUT);
     const cusps=fallbackHouses(ramc,lat);
     cusps[0]=asc;cusps[9]=mc;cusps[6]=n360(asc+180);cusps[3]=n360(mc+180);
     const pfort=n360(asc+fast.Luna.lon-fast.Sol.lon);
