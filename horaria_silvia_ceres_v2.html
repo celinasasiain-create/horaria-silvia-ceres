@@ -2276,9 +2276,10 @@ function calcAsc(jd,lat,lon){
   const ramc=n360(gmst(jd)+lon);
   const e=23.4367;
   const ramc_r=toRad(ramc),e_r=toRad(e),lat_r=toRad(lat);
-  // MC
-  const MC=Math.atan2(Math.cos(e_r)*Math.sin(ramc_r),Math.cos(ramc_r))*180/Math.PI;
-  const mc=n360(MC+(Math.cos(ramc_r)<0?180:0));
+  // MC — fórmula correcta: atan2(tan(RAMC), cos(e)) ajustado al cuadrante del RAMC
+  let mc = Math.atan2(Math.tan(ramc_r), Math.cos(e_r))*180/Math.PI;
+  mc = ((mc % 360) + 360) % 360;
+  if (Math.abs(mc - ramc % 360) > 90) mc = (mc + 180) % 360;
   // ASC: formula estandar + correccion hemisferio sur (lat<0 => +180°)
   const denom=Math.sin(e_r)*Math.tan(lat_r)+Math.cos(e_r)*Math.sin(ramc_r);
   const numer=-Math.cos(ramc_r);
@@ -4407,9 +4408,12 @@ function fallbackHouses(ramc, lat) {
   const e_r = toRad(e);
   const lat_r = toRad(lat);
 
-  // MC
-  const mc = n360(Math.atan2(Math.cos(e_r)*Math.sin(toRad(ramc)), Math.cos(toRad(ramc)))*180/Math.PI
-               + (Math.cos(toRad(ramc)) < 0 ? 180 : 0));
+  // MC — fórmula correcta: atan2(tan(RAMC), cos(e)), ajustado al cuadrante del RAMC
+  const mc_raw = Math.atan2(Math.tan(toRad(ramc)), Math.cos(e_r)) * 180/Math.PI;
+  let mc = mc_raw % 360;
+  if (mc < 0) mc += 360;
+  // Asegurar que MC esté en el mismo semicírculo que RAMC
+  if (Math.abs(mc - (ramc % 360)) > 90) mc = (mc + 180) % 360;
 
   // ASC (hemisferio sur: +180°)
   const denom = Math.sin(e_r)*Math.tan(lat_r) + Math.cos(e_r)*Math.sin(toRad(ramc));
@@ -5439,9 +5443,9 @@ function startMic() {
     };
 
     _micRecognition.onend = () => {
+      // No reiniciar automáticamente — en móvil causa bucle de repetición
       if (_micActive) {
-        // Se cortó solo — reiniciar para grabación continua
-        try { _micRecognition.start(); } catch(e) {}
+        stopMic();
       }
     };
 
